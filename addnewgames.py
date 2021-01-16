@@ -42,9 +42,10 @@ class GetInput(Tk):
             json.dump(NEW_DATA, f, sort_keys=True, indent=4)
 
         mbox.showinfo("Success", "Game was added successfully")
-        self.game.delete(0, 'end')
+        self.folder.delete(0, 'end')
+        self.name.delete(0, 'end')
         self.url.delete(0, 'end')
-        self.game.focus()
+        self.folder.focus()
 
 
 if __name__ == "__main__":

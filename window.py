@@ -1,5 +1,6 @@
 from changecolor import lighten, darken
 from scrolledframe import ScrolledFrame
+from re import split as re_split
 from editlist import *
 
 
@@ -106,8 +107,8 @@ class GUI(Tk):
         btn = Button(self, text="Check for new games", command=scanGames)
         btn.place(anchor='sw', relx=0, x=PAD, rely=0.3)
 
-        self.browseFrm = ScrolledFrame(self, scrollbars='e', dohide=False,
-                                       doupdate=False, padding=PAD, relief='sunken')
+        self.browseFrm = ScrolledFrame(self, scrollbars='e', padding=PAD, dohide=False,
+                                       doupdate=False, scrollspeed=1, relief='sunken')
         self.browseFrm.place(anchor='n', relx=0.5, rely=0.3, y=PAD,
                              relwidth=1, relheight=0.7, height=-PAD*2)
 
@@ -116,58 +117,77 @@ class GUI(Tk):
 
     def redrawList(self):
         [w.destroy() for w in self.browseFrm.winfo_children()]
-        for i, (name, data) in enumerate(self.gameList.items()):
+        for i, (gFol, data) in enumerate(self.gameList.items()):
             BG = self.litBG if (i % 2) else self.defBG
             lineItem = Canvas(self.browseFrm, background=BG)
             lineItem.grid(row=i, column=0, padx=PAD / 2, pady=PAD / 2)
-            self.fillLineItem(lineItem, name, data)
-
-    def fillLineItem(self, lineItem, name, data):
-        info = data['Info']
-        cats = data['Categories']
-        tags = data['Tags']
-        BG = lineItem.cget('background')
-        curCol = 0
-        # tools
-        f = LFrame(lineItem, font=FONT_SM, text='Tools', background=BG)
-        f.grid(row=0, column=curCol, sticky='ns')
-        f.columnconfigure(0, weight=1)
-        # play btn
-        self.canvasButton(f, bg=BG, color='#87ffb9', fnt=FONT_LG, txt='▶', row=0, col=0,
-                          cmd=(lambda e, n=name, p=info['Program Path']: self.startGame(e, n, p)))
-        # link btn
-        self.canvasButton(f, bg=BG, color='#9cd4ff', txt='www', row=1, col=0,
-                          cmd=(lambda e, u=info['URL']: self.checkForUpdate(u)))
-        # edit btn
-        self.canvasButton(f, bg=BG, color='#e3b668', txt='Edit', row=2, col=0,
-                          cmd=(lambda e, n=name: self.editGame(e, n)))
-        # title
-        curCol += 1
-        self.textbox(lineItem, ttl="Title", h=5, w=17, bg=BG,
-                     txt=info['Title'], row=0, col=curCol)
-        # version
-        curCol += 1
-        self.textbox(lineItem, ttl="Version", h=5, w=8, bg=BG,
-                     txt=info['Version'], row=0, col=curCol)
-        # categories
-        curCol += 1
-        curCats = [t for t, v in cats.items() if v and t not in CAT_LST] + \
-            ['{}: {}'.format(n, cats['{}'.format(n)]) for n in CAT_LST]
-        self.textbox(lineItem, ttl="Categories", h=5, w=15, bg=BG,
-                     txt='\n'.join(curCats), row=0, col=curCol)
-        # tags
-        curCol += 1
-        curTags = [t for t, v in tags.items() if v and t not in TAG_LST] + \
-            ['{} {}'.format(tags['{}'.format(n)], n) for n in TAG_LST]
-        self.textbox(lineItem, ttl="Tags", h=5, w=23, bg=BG, txt=', '.join(
-            curTags), row=0, col=curCol)
-        # description
-        curCol += 1
-        self.textbox(lineItem, ttl="Description", h=5, w=75, bg=BG,
-                     txt=info['Description'], row=0, col=curCol)
-        # redraw scrolledframe
+            self.fillLineItem(lineItem, BG, gFol, data)
+        # update scrolledframe
         self.update_idletasks()
         self.browseFrm.redraw()
+
+    def fillLineItem(self, lineItem, BG, gFol, data):
+
+        def canvasButton(color, txt, row, cmd, fnt=FONT_SM):
+            cnvBtn = Canvas(toolFrm, width=BTNSIZE, height=BTNSIZE, bg=BG)
+            cnvBtn.grid(row=row, column=0, sticky='ns', pady=2)
+            cir = cnvBtn.create_oval(0, 0, BTNSIZE-1, BTNSIZE-1, fill=color)
+            cnvBtn.create_text(BTNSIZE/2, BTNSIZE/2, text=txt, font=fnt)
+            hlcolor = darken('HEX', color)
+            cnvBtn.bind('<ButtonRelease-1>', cmd)
+            def onEnter(e): cnvBtn.itemconfig(cir, fill=hlcolor)
+            cnvBtn.bind('<Enter>', onEnter)
+            def onLeave(e): cnvBtn.itemconfig(cir, fill=color)
+            cnvBtn.bind('<Leave>', onLeave)
+
+        def textbox(title, wt, txt, txtcol='SystemButtonText'):
+            lf = LFrame(lineItem, font=FONT_SM, text=title, background=BG)
+            lf.grid(row=0, column=curCol, sticky='ns')
+            t = Text(lf, font=FONT_MD, height=5, width=wt, wrap='word',
+                     padx=PAD/2, pady=PAD/2, background=BG, foreground=txtcol)
+            t.grid()
+            t.insert('end', txt)
+            t.config(state='disabled')
+
+        info = data['Info']
+        cats = {**data['Categories']}
+        tags = data['Tags']
+        gTitle = info['Title']
+        curCol = 0
+        # tools
+        toolFrm = LFrame(lineItem, font=FONT_SM, text='Tools', background=BG)
+        toolFrm.grid(row=0, column=curCol, sticky='ns')
+        toolFrm.columnconfigure(0, weight=1)
+        # play btn
+        def playBtn(e): self.startGame(e, gFol, gTitle, info['Program Path'])
+        canvasButton('#87ffb9', '▶', 0, playBtn, fnt=FONT_LG)
+        # link btn
+        def linkBtn(e): self.checkForUpdate(info['URL'])
+        canvasButton('#9cd4ff', 'www', 1, linkBtn)
+        # edit btn
+        def editBtn(e): self.editGame(e, gFol)
+        canvasButton('#e3b668', 'Edit', 2, editBtn)
+        # title
+        curCol += 1
+        txt = gTitle + ' [Eroge]' if cats.pop('Eroge') else gTitle
+        txtcol = 'gold' if cats.pop('Favorite') else 'SystemButtonText'
+        textbox("Title", 17, txt, txtcol)
+        # version
+        curCol += 1
+        txtcol = 'white' if cats.pop('Completed') else 'SystemButtonText'
+        textbox("Version", 8, info['Version'], txtcol)
+        # categories
+        curCol += 1
+        curCats = ['{}: {}'.format(c, v) for c, v in cats.items()]
+        textbox("Categories", 15, '\n'.join(curCats))
+        # tags
+        curCol += 1
+        curTags = [t for t, v in tags.items() if v and t not in TAG_LST]
+        curTags += ['{} {}'.format(tags['{}'.format(n)], n) for n in TAG_LST]
+        textbox("Tags", 23, ', '.join(curTags))
+        # description
+        curCol += 1
+        textbox("Description", 75, info['Description'])
 
     def checkForUpdate(self, curUrl):
         if 'f95zone' in curUrl and curUrl == req_url().head(curUrl, allow_redirects=True).url:
@@ -175,45 +195,27 @@ class GUI(Tk):
                 return
         os_startfile(curUrl)
 
-    def canvasButton(self, p, bg, color, txt, cmd, row, col, fnt=FONT_SM):
-        cnvBtn = Canvas(p, width=BTNSIZE, height=BTNSIZE, background=bg)
-        cnvBtn.grid(row=row, column=col, sticky='ns', pady=2)
-        cir = cnvBtn.create_oval(0, 0, BTNSIZE-1, BTNSIZE-1, fill=color)
-        cnvBtn.create_text(BTNSIZE/2, BTNSIZE/2, text=txt, font=fnt)
-        hlcolor = darken('HEX', color)
-        cnvBtn.bind('<ButtonRelease-1>', cmd)
-        cnvBtn.bind('<Enter>', lambda e, b=cnvBtn, c=cir,
-                    clr=hlcolor: b.itemconfig(c, fill=clr))
-        cnvBtn.bind('<Leave>', lambda e, b=cnvBtn,
-                    c=cir: b.itemconfig(c, fill=color))
-
-    def textbox(self, p, ttl, h, w, bg, txt, row, col):
-        lf = LFrame(p, font=FONT_SM, text=ttl, background=bg)
-        lf.grid(row=row, column=col, sticky='ns')
-        t = Text(lf, font=FONT_MD, height=h, width=w,
-                 wrap='word', padx=3, pady=3, background=bg)
-        t.grid()
-        t.insert('end', txt)
-        t.config(state='disabled')
-
-    def startGame(self, event, gameName, gamePath):
+    def startGame(self, event, gFolder, gTitle, gPath):
+        def startSub(exe):
+            tw.destroy()
+            os_startfile(exe)
         try:
-            if '||' in gamePath:
+            if ';' not in gPath:
+                exe = os_path.join(PATH_GAMES, gPath)
+                os_startfile(exe)
+            else:
                 tw = Toplevel(self, padx=PAD, pady=PAD)
                 tw.overrideredirect(1)
                 tw.geometry('+{}+{}'.format(event.x_root, event.y_root))
                 tw.focus_set()
                 tw.bind('<FocusOut>', lambda e: tw.destroy())
-                [Button(tw, text=g, command=lambda game=os_path.join(gameName, g): [
-                        tw.destroy(), os_startfile(game)]).pack() for g in gamePath.split('||')]
-            else:
-                if os_path.isdir(gameName):
-                    os_startfile(os_path.join(gameName, gamePath))
-                else:
-                    os_startfile(gamePath)
+                for exePath in re_split(r'; ?', gPath):
+                    exe = os_path.join(PATH_GAMES, exePath)
+                    name = os_path.splitext(os_path.basename(exePath))[0]
+                    Button(tw, text=name, command=lambda x=exe: startSub(x)).pack()
         except Exception:
-            if mbox.askyesno("Error", "Couldn't start '{}'.\nWould you like to change the executable path?"):
-                self.editGame(event, gameName)
+            if mbox.askyesno("Error", "Couldn't start '{}'.\nWould you like to change the executable path?\n{}".format(gTitle, gPath)):
+                self.editGame(event, gFolder)
 
     def editGame(self, event, game):
         self.changed = False
@@ -224,13 +226,16 @@ class GUI(Tk):
             pass
         if self.changed:
             lineItem = event.widget
+            BG = lineItem.cget('background')
             for _ in range(2):
                 lineItem = self.nametowidget(lineItem.winfo_parent())
             for child in lineItem.winfo_children():
                 child.destroy()
             data = self.gameClass.masterList[self.changed]
             self.gameList.update({self.changed: data})
-            self.fillLineItem(lineItem, self.changed, data)
+            self.fillLineItem(lineItem, BG, self.changed, data)
+            # self.update_idletasks()
+            self.browseFrm.redraw()
 
     def searchBrowse(self):
         self.gameClass.alphabetize()

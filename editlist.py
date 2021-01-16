@@ -65,15 +65,16 @@ class EditGames(Toplevel):
         btnFrm.grid(row=4, column=0, columnspan=2, sticky='nsew', pady=PAD)
         [btnFrm.columnconfigure(n, weight=1) for n in [0, 1, 2]]
         curCol = 0
+        st = ['', ''] if self.showSkip else ['e', 'w']
         b1 = Button(btnFrm, text="Close",
                     command=lambda: self.closeWindow(True))
-        b1.grid(row=0, column=curCol, padx=25)
+        b1.grid(row=0, column=curCol, sticky=st[0], padx=25)
+        curCol += 1
         if self.showSkip:
-            curCol += 1
             b2 = Button(btnFrm, text="Skip", command=self.closeWindow)
             b2.grid(row=0, column=curCol, padx=25)
         b3 = Button(btnFrm, text="Save", command=self.submit)
-        b3.grid(row=0, column=curCol+1, padx=25)
+        b3.grid(row=0, column=curCol+1, sticky=st[1], padx=25)
 
     def createInfoFrm(self):
 
@@ -125,18 +126,16 @@ class EditGames(Toplevel):
             exePath = searchForExe(self.gameDir)
             if exePath:
                 self.infoEnts['Program Path'].insert(0, exePath)
-            elif mbox.askyesno("Nested Files or Multi-Work Series?",
-                               "Couldn't find an executable file. Does '%s' have a nested file structure or is it a multi-work series?" % self.game,
-                               parent=self):
+            else:
                 folPaths = {os_path.join(self.gameDir, sub)
                             for sub in os_listdir(self.gameDir)}
                 exePaths = {searchForExe(fol) for fol in folPaths} - {''}
                 if exePaths:
-                    self.infoEnts['Program Path'].insert(
-                        0, '; '.join(exePaths))
+                    exePaths = '; '.join(exePaths)
+                    self.infoEnts['Program Path'].insert(0, exePaths)
                 else:
-                    mbox.showinfo("Failure",
-                                  "Still couldn't find executables. Please add them manually, separated by a semicolon",
+                    mbox.showinfo("Missing Executable",
+                                  "Couldn't find executable for '%s'. Please add them manually, separated by a semicolon" % self.game,
                                   parent=self)
             self.deiconify()
         b1 = Button(infoFrm, text="Browse", command=browseFolders)
@@ -158,7 +157,7 @@ class EditGames(Toplevel):
         # add checkbuttons
         for c, v in self.catToggles.items():
             chk = Checkbutton(catFrm, text=c, variable=v)
-            chk.grid(row=curRow, column=curCol, padx=PAD / 2)
+            chk.grid(row=curRow, column=curCol, padx=PAD/2)
             if curCol == MAX_CAT_COL:
                 curRow, curCol = [curRow + 1, 0]
             else:
