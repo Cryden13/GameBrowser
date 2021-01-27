@@ -1,7 +1,7 @@
 import json
-from tkinter import Tk, Label, Entry, Button, messagebox as mbox
+from tkinter import Tk, Label, Entry, Button
 from os import path as os_path
-from constants import FONT_MD, PATH_NEW, NEW_DATA
+from constants import FONT_MD, PATH_NEW, NEW_DATA, os_system
 
 
 class GetInput(Tk):
@@ -18,10 +18,10 @@ class GetInput(Tk):
         self.GUI()
 
     def GUI(self):
-        self.folder = self.labelEntry("Game folder:", 0)
-        self.folder.focus()
+        self.url = self.labelEntry("Site URL:", 0)
+        self.url.focus()
         self.name = self.labelEntry("Game name:", 1)
-        self.url = self.labelEntry("Site URL:", 2)
+        self.folder = self.labelEntry("Game folder:", 2)
 
         Button(self, text="Close (Esc)", command=self.destroy).place(
             anchor='se', relx=0.4, rely=0.9)
@@ -36,16 +36,17 @@ class GetInput(Tk):
         return ent
 
     def submit(self):
-        NEW_DATA.update(
-            {self.folder.get(): {'name': self.name.get(), 'url': self.url.get()}})
+        data = dict(name=self.name.get(),
+                    url=self.url.get())
+        NEW_DATA.update({self.folder.get(): data})
         with open(PATH_NEW, 'w') as f:
             json.dump(NEW_DATA, f, sort_keys=True, indent=4)
 
-        mbox.showinfo("Success", "Game was added successfully")
+        os_system('nircmd stdbeep')
         self.folder.delete(0, 'end')
         self.name.delete(0, 'end')
         self.url.delete(0, 'end')
-        self.folder.focus()
+        self.url.focus()
 
 
 if __name__ == "__main__":
