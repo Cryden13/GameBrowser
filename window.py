@@ -46,11 +46,11 @@ class GUI(Tk):
         self.createBrowse()
 
     def checkForNew(self):
-        if self.gameClass.checkForNewGames():
+        updateGames = self.gameClass.checkForNewGames()
+        if updateGames:
             self.searchBrowse()
 
     def createSearch(self):
-        self.prevSearch = set()
         # create container
         self.searchFrm = LFrame(self,
                                 font=FONT_LG,
@@ -292,8 +292,7 @@ class GUI(Tk):
     def editGame(self, event, game):
         updateGame = EditGames(self,
                                self.gameClass,
-                               [game],
-                               True)
+                               [game])
         if updateGame:
             lineItem = event.widget
             BG = lineItem.cget('background')
@@ -301,8 +300,8 @@ class GUI(Tk):
                 lineItem = self.nametowidget(lineItem.winfo_parent())
             for child in lineItem.winfo_children():
                 child.destroy()
-            data = self.gameClass.masterList[updateGame]
-            self.gameList.update({updateGame: data})
+            data = self.gameClass.masterList[game]
+            self.gameList.update({game: data})
             self.fillLineItem(lineItem,
                               BG,
                               updateGame,
@@ -314,19 +313,12 @@ class GUI(Tk):
         sInfo = {**self.catToggles, **self.catLists,
                  **self.tagToggles, **self.tagLists}
         search = {k for k, v in sInfo.items() if v.get() and v.get() != 'Any'}
-        if search == self.prevSearch:
-            return
-        elif self.prevSearch and search.issubset(self.prevSearch):
-            searchDict = {**self.gameList}
-        else:
-            searchDict = {**self.gameClass.masterList}
         self.gameList = dict()
-        for game, allData in searchDict.items():
+        for game, allData in self.gameClass.masterList.items():
             data = {**allData['Categories'], **allData['Tags']}
             dataVals = {k for k, v in data.items() if v}
             if search.issubset(dataVals):
                 self.gameList.update({game: allData})
-        self.prevSearch = search
         self.redrawList()
 
     def clearSearch(self):

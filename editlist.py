@@ -241,7 +241,7 @@ class _EditGamesDialog(Dialog):
                 self.infoEnts['Program Path'].insert(0, exePath)
             else:
                 fs = os_listdir(self.gamePath)
-                folPaths = {os_path.realpath(sub) for sub in fs}
+                folPaths = {os_path.join(self.gamePath, sub) for sub in fs}
                 exePaths = {searchForExe(fol) for fol in folPaths} - {''}
                 if exePaths:
                     exePaths = '; '.join(exePaths)
@@ -409,5 +409,5 @@ def createSubFrm(parent, title, row, togDict, listDict, LST, MAX_COL, setCbx=Fal
 
 
 def EditGames(parent, gameClass, allGames, showSkip=False):
-    args = [parent, gameClass, allGames, showSkip]
-    return _EditGamesDialog(*args).updateGames
+    res = _EditGamesDialog(parent, gameClass, allGames, showSkip)
+    return res.updateGames

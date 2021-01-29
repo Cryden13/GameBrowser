@@ -62,7 +62,7 @@ class GameLib:
 
     def save(self):
         self.alphabetize()
-        with open(os_path.join(PATH_PROG, 'Game List.json'), 'w') as f:
+        with open(PATH_LIST, 'w') as f:
             json.dump(self.masterList, f, indent=4)
 
     def alphabetize(self):
@@ -78,15 +78,17 @@ class GameLib:
         newGames = list()
         for game in os_listdir():
             if game == os_path.basename(PATH_PROG):
-                pass
+                continue
             if not os_path.isdir(game):
                 if os_path.splitext(game)[1] not in FILETYPES:
-                    pass
+                    continue
             if game in self.masterList:
-                pass
+                continue
             newGames.append(game)
         if newGames:
-            return EditGames(self.root, self, newGames)
+            newGames.sort()
+            print(len(newGames), 'new games')
+            return EditGames(self.root, self, newGames, True)
         else:
             mbox.showinfo("Notice", "No new games were found!")
             return False
