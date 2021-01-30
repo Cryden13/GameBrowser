@@ -1,50 +1,56 @@
-from window import *
+from tkinter.filedialog import askopenfilenames as Askfiles
+from os import path as os_path, listdir as os_listdir
+import json
+
+from editlist import EditGames
+from constants import *
 
 
 class GameLib:
     def __init__(self, root):
         self.root = root
-        self.masterList = {}
-        if os_path.exists(PATH_LIST):
-            with open(PATH_LIST, 'r') as f:
-                self.masterList = json.load(f)
-            self.checkForMissingGames()
+        with open(PATH_LIST, 'r') as f:
+            self.masterList = json.load(f)
+        self.checkForMissingGames()
+        with open(PATH_RECENT, 'r') as f:
+            self.recentList = json.load(f)
+        with open(PATH_NEW, 'r') as f:
+            self.newList = json.load(f)
 
     def checkForMissingGames(self):
         missingGames = [g for g in self.masterList if g not in os_listdir()]
-        ttl = "Missing Reference ({} of {})"
-        msg = "'{}' could not be found.\nPress <abort> to delete this item, <retry> to search for the file, or <ignore> to skip this check"
-        update = False
-        num = len(missingGames)
+        ttl = "Missing Reference ({} of %d)" % len(missingGames)
+        msg = "'{}' could not be found.\nPress <abort> to delete this item, <retry> to search for this item's executable(s), or <ignore> to skip this check"
+        searchTtl = "Select the executable(s) for '{}'"
+        doUpdate = False
         for i, game in enumerate(missingGames):
-            ans = mbox.askquestion(ttl.format(i+1, num),
+            ans = Mbox.askquestion(ttl.format(i+1),
                                    msg.format(game),
                                    icon='warning',
                                    type='abortretryignore')
-            if ans == 'ignore':
-                break
+            if ans == 'abort':
+                self.masterList.pop(game)
+                doUpdate = True
             elif ans == 'retry':
-                exePaths = []
-                more = True
-                while more:
-                    kwargs = dict(title="Select the executable(s) for '{}'".format(game),
-                                  initialdir=PATH_GAMES)
-                    newPaths = askopenfilenames(**kwargs)
+                exePaths = list()
+                addMore = True
+                while addMore:
+                    newPaths = Askfiles(title=searchTtl.format(game),
+                                        initialdir=PATH_GAMES)
                     exePaths += [os_path.relpath(p) for p in newPaths]
-                    more = mbox.askyesno("More?",
-                                         "Are there more executable(s) to add?")
+                    addMore = Mbox.askyesno("Add More?",
+                                            "Are there additional executable(s) to add?")
                 if exePaths:
                     data = self.masterList.pop(game)
                     paths = '; '.join(exePaths)
                     data['Info']['Program Path'] = paths
                     self.masterList.update({paths.split('\\')[0]: data})
-                    update = True
+                    doUpdate = True
             else:
-                self.masterList.pop(game)
-                update = True
-        update = self.insertNewTags(update)
+                break
+        doUpdate = self.insertNewTags(doUpdate)
         self.root.deiconify()
-        if update:
+        if doUpdate:
             self.save()
 
     def insertNewTags(self, update):
@@ -90,5 +96,13 @@ class GameLib:
             print(len(newGames), 'new games')
             return EditGames(self.root, self, newGames, True)
         else:
-            mbox.showinfo("Notice", "No new games were found!")
+            Mbox.showinfo("Notice", "No new games were found!")
             return False
+
+    def saveRecent(self):
+        with open(PATH_RECENT, 'w') as f:
+            json.dump(self.recentList, f, indent=4)
+
+    def saveNew(self):
+        with open(PATH_NEW, 'w') as f:
+            json.dump(self.newList, f, indent=4)

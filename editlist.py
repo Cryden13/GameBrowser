@@ -1,11 +1,12 @@
-from tkinter import Tk, Toplevel, Canvas, IntVar, StringVar, Text, LabelFrame as LFrame, messagebox as mbox
-from tkinter.filedialog import askopenfilenames
-from tkinter.ttk import Label, Button, Entry, Checkbutton, Combobox, Style, Frame
+from tkinter import Canvas, IntVar, StringVar, Text, LabelFrame as LFrame, messagebox as Mbox
+from tkinter.filedialog import askopenfilenames as Askfiles
 from tkinter.simpledialog import Dialog
-from time import sleep
-from re import sub as re_sub, search as re_search, findall as re_findall
+from tkinter.ttk import Label, Button, Entry, Checkbutton, Combobox
+from os import startfile as os_startfile, listdir as os_listdir, system as os_system
+from re import sub as re_sub, findall as re_findall
 from requests import Session as req_url
-from lxml import html
+from lxml import html as Html
+
 from constants import *
 
 
@@ -55,7 +56,7 @@ class _EditGamesDialog(Dialog):
     def body(self, master):
         # initialize window
         self.geometry(self.parent.geometry())
-        self.geometry('{:.0f}x{:.0f}'.format(WIDTH * 0.7, HEIGHT * 0.7))
+        self.geometry('{:.0f}x{:.0f}'.format(EDIT_WD, EDIT_WD))
         # create container
         self.cnvs = Canvas(self)
         self.cnvs.pack(expand=True,
@@ -71,38 +72,6 @@ class _EditGamesDialog(Dialog):
         # fill info
         self.getNext()
         return self.infoEnts['Title']
-
-    def getNext(self):
-        if self.allGames:
-            self.clearData()
-            self.doF95Lookup = False
-            self.game = self.allGames.pop()
-            self.gamePath = os_path.join(PATH_GAMES,
-                                         self.game)
-            self.fillData()
-        else:
-            self.destroy()
-
-    def clearData(self):
-        self.pathLbl.set('')
-        # clear info
-        for _, ent in self.infoEnts.items():
-            ent.delete(0, 'end')
-        self.infoDesc.delete(1.0, 'end')
-        # clear togs
-        for _, tog in {**self.catToggles, **self.tagToggles}.items():
-            tog.set(0)
-        # clear lists
-        for _, cbx in {**self.catLists, **self.tagLists}.items():
-            cbx.set('')
-
-    def fillData(self):
-        self.pathLbl.set(self.game)
-        self.fillInfoData()
-        if self.doF95Lookup:
-            self.getF95Info()
-        if self.game in self.gameClass.masterList:
-            self.insertInfo()
 
     def createHeader(self):
         pathFrm = LFrame(self.cnvs,
@@ -123,8 +92,8 @@ class _EditGamesDialog(Dialog):
     def createInfoFrm(self):
 
         def browseFolders():
-            rawPaths = askopenfilenames(title="Select the game executable(s)",
-                                        initialdir=os_path.join(PATH_GAMES, self.game))
+            rawPaths = Askfiles(title="Select the game executable(s)",
+                                initialdir=os_path.join(PATH_GAMES, self.game))
             if rawPaths:
                 relpaths = [os_path.relpath(p) for p in rawPaths]
                 paths = '; '.join(relpaths)
@@ -203,6 +172,37 @@ class _EditGamesDialog(Dialog):
                      TAG_LST,
                      MAX_TAG_COL)
 
+    def getNext(self):
+        if self.allGames:
+            self.clearData()
+            self.doF95Lookup = False
+            self.game = self.allGames.pop()
+            self.gamePath = os_path.join(PATH_GAMES, self.game)
+            self.fillData()
+        else:
+            self.destroy()
+
+    def clearData(self):
+        self.pathLbl.set('')
+        # clear info
+        for _, ent in self.infoEnts.items():
+            ent.delete(0, 'end')
+        self.infoDesc.delete(1.0, 'end')
+        # clear togs
+        for _, tog in {**self.catToggles, **self.tagToggles}.items():
+            tog.set(0)
+        # clear lists
+        for _, cbx in {**self.catLists, **self.tagLists}.items():
+            cbx.set('')
+
+    def fillData(self):
+        self.pathLbl.set(self.game)
+        self.fillInfoData()
+        if self.doF95Lookup:
+            self.getF95Info()
+        if self.game in self.gameClass.masterList:
+            self.insertInfo()
+
     def fillInfoData(self):
 
         def defaultData(g):
@@ -230,7 +230,11 @@ class _EditGamesDialog(Dialog):
 
         if self.game not in self.gameClass.masterList:
             # set title and url from either 'New Games' or default
-            data = NEW_DATA.get(self.game, defaultData(self.game))
+            try:
+                data = self.gameClass.newList.pop(self.game)
+                self.gameClass.saveNew()
+            except Exception:
+                data = defaultData(self.game)
             if 'f95zone' in data['url']:
                 self.doF95Lookup = True
             self.infoEnts['Title'].insert(0, data['name'])
@@ -247,23 +251,22 @@ class _EditGamesDialog(Dialog):
                     exePaths = '; '.join(exePaths)
                     self.infoEnts['Program Path'].insert(0, exePaths)
                 else:
-                    mbox.showinfo("Missing Executable",
+                    Mbox.showinfo("Missing Executable",
                                   "Couldn't find executable(s) for '%s'. Please add them manually, separated by a semicolon" % self.game,
                                   parent=self)
 
-    def formatData(self, data):
-        string = ''.join(data)
-        encoded = string.encode('ascii', 'ignore')
-        return encoded.decode().strip()
-
     def getF95Info(self):
+        def formatData(data):
+            string = ''.join(data)
+            encoded = string.encode('ascii', 'ignore')
+            return encoded.decode().strip()
         # set url and check it
         url = self.infoEnts['URL'].get()
         if not url:
-            mbox.showerror("Error", "No URL specified")
+            Mbox.showerror("Error", "No URL specified")
             return
         elif 'f95zone' not in url:
-            mbox.showerror("Error", "Only f95zone urls supported")
+            Mbox.showerror("Error", "Only f95zone urls supported")
             return
 
         # set data paths
@@ -272,10 +275,10 @@ class _EditGamesDialog(Dialog):
         xpath_desc = '//article[@class="message-body js-selectToQuote"]/div[@class="bbWrapper"]/div[count(b)>0]'
         xpath_ver = '//article[@class="message-body js-selectToQuote"]//b[contains(translate(text(), "VERSION", "version"), "version")]/following-sibling::text()[1]'
         # retrieve data
-        page = html.fromstring(req_url().get(url).content)
+        page = Html.fromstring(req_url().get(url).content)
 
         # get catagory info
-        rawHeader = self.formatData(page.xpath(xpath_title)).lower()
+        rawHeader = formatData(page.xpath(xpath_title)).lower()
         rawCatInfo = re_findall(r'(?<=\[).+?(?=\])',
                                 rawHeader)
         if rawHeader and rawCatInfo:
@@ -316,7 +319,7 @@ class _EditGamesDialog(Dialog):
                 protag = 'Multiple'
             self.tagLists['Protagonist'].set(protag)
         # get description
-        rawDesc = self.formatData(page.xpath(xpath_desc)[0].text_content())
+        rawDesc = formatData(page.xpath(xpath_desc)[0].text_content())
         desc = re_sub(r'\s*(\r+|\n+)\s*',
                       r'\n',
                       rawDesc)
@@ -370,7 +373,7 @@ def createSubFrm(parent, title, row, togDict, listDict, LST, MAX_COL, setCbx=Fal
              column=0,
              sticky='nsew')
     for n in range(MAX_COL):
-        frm.columnconfigure(n, minsize=GRIDMIN)
+        frm.columnconfigure(n, minsize=GRID_MIN_SIZE)
     curRow = curCol = 0
     # add checkbuttons
     for c, v in togDict.items():

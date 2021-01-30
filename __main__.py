@@ -1,11 +1,13 @@
-from traceback import format_exc
-from gamelibrary import *
+from os import chdir
+
+from constants import PATH_GAMES
+from window import GUI
+from gamelibrary import GameLib
 
 
-os_chdir(PATH_GAMES)
-root = GUI()
-gamelib = GameLib(root)
-root.start_main(gamelib)
-root.mainloop()
-if format_exc()[: 14] != "NoneType: None":
-    input("Fatal Exception occured. Press Enter to continue: ")
+if __name__ == '__main__':
+    chdir(PATH_GAMES)
+    root = GUI()
+    gamelib = GameLib(root)
+    root.start_main(gamelib)
+    root.mainloop()

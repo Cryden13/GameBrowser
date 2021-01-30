@@ -30,7 +30,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Aclevername-0.1-pc": {
@@ -64,7 +65,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "A_FUTARTICLE-0.9-pc": {
@@ -98,7 +100,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "A Struggle With Sin 0.3.3.1": {
@@ -132,7 +135,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "A_Tale_of_Eden-pc": {
@@ -166,15 +170,16 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
-    "Academy Of Fetishes": {
+    "Academy of Fetishes": {
         "Info": {
-            "Title": "Academy Of Fetishes",
+            "Title": "Academy of Fetishes",
             "Version": "1.02.00",
             "URL": "https://f95zone.to/threads/academy-of-fetishes-v1-02-00-aofg.3769/",
-            "Program Path": "Academy Of Fetishes\\index.html",
+            "Program Path": "Academy of Fetishes\\index.html",
             "Description": "You are the principal of Saint Mary's, a financially ruined all-female college. Fortunately, an anonymous benefactor offers to keep the school afloat so long as the students and teachers perform lewd acts.\nWhen you start, the students and teachers are reluctant. But the longer you play, the more they break out of their shell and show you how twisted and perverted they really are."
         },
         "Categories": {
@@ -200,7 +205,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Acting Lessons-1.0.2": {
@@ -234,7 +240,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Adventurer Milia and the tower of desire v1.12 ENG": {
@@ -268,7 +275,8 @@
             "Vore": 0,
             "Protagonist": "Female",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Aleistra-1.0-win": {
@@ -302,7 +310,8 @@
             "Vore": 0,
             "Protagonist": "Female",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Amazon_Brawl_Hardcore": {
@@ -336,7 +345,8 @@
             "Vore": 0,
             "Protagonist": "Multiple",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Amazon Kara": {
@@ -370,7 +380,8 @@
             "Vore": 0,
             "Protagonist": "Multiple",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "An Unexpected New Life v0.3.2.html": {
@@ -404,7 +415,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Anera- The demon's Tower 1.30 R1": {
@@ -438,7 +450,8 @@
             "Vore": 0,
             "Protagonist": "Female",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Anoko tachi Game Center Pettanko Park [ENG]": {
@@ -470,6 +483,7 @@
             "Incest": 0,
             "Loli": 1,
             "Monster Girl": 0,
+            "Shota": 1,
             "Sissification": 0,
             "Vore": 0,
             "Protagonist": "Female"
@@ -506,7 +520,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Another Night ACT1 0.1.1": {
@@ -540,7 +555,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Aster v4.10.18 - Kyrieru": {
@@ -574,7 +590,8 @@
             "Vore": 0,
             "Protagonist": "Female",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Attack it! Devil Legion v1.21": {
@@ -608,7 +625,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Aurora Origin 0.4.7b": {
@@ -642,7 +660,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "BarnSecrets090": {
@@ -664,19 +683,20 @@
         "Tags": {
             "Animated": 1,
             "Bestiality": 0,
+            "Corruption": 0,
             "Femdom": 1,
             "Footjob": 0,
             "Furry": 1,
             "Futa/Trans": 1,
             "Gay": 1,
+            "Gross": 0,
             "Incest": 0,
             "Loli": 1,
             "Monster Girl": 1,
+            "Shota": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple",
-            "Gross": 0,
-            "Corruption": 0
+            "Protagonist": "Multiple"
         }
     },
     "BARRAGE! [Eng]": {
@@ -710,7 +730,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Be a Maid in the Demon World": {
@@ -744,7 +765,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Below Sunshade 2.02": {
@@ -778,7 +800,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Bitch Medicenter FINAL": {
@@ -812,7 +835,8 @@
             "Vore": 0,
             "Protagonist": "Unknown",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Blooming Love-1.0-pc": {
@@ -846,7 +870,8 @@
             "Vore": 0,
             "Protagonist": "Female",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Blue Smut Studios": {
@@ -880,7 +905,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Bounty Hunter v1.1 c3": {
@@ -914,7 +940,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Building Our Futature-0.13.0-pc": {
@@ -948,7 +975,8 @@
             "Vore": 0,
             "Protagonist": "Multiple",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Chemicalchange-2.25xmas-pc": {
@@ -982,7 +1010,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Cloud 10 (10-01-20).url": {
@@ -1016,7 +1045,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "COERCION-win": {
@@ -1050,7 +1080,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Cornelica, Town of Succubi": {
@@ -1072,19 +1103,20 @@
         "Tags": {
             "Animated": 1,
             "Bestiality": 0,
+            "Corruption": 0,
             "Femdom": 1,
             "Footjob": 0,
             "Furry": 0,
             "Futa/Trans": 0,
             "Gay": 0,
+            "Gross": 0,
             "Incest": 0,
             "Loli": 1,
             "Monster Girl": 1,
+            "Shota": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male",
-            "Gross": 0,
-            "Corruption": 0
+            "Protagonist": "Male"
         }
     },
     "CoC_1.0.2.swf": {
@@ -1118,7 +1150,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "CoC_II-0.3.29": {
@@ -1152,7 +1185,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Crimson Keep": {
@@ -1186,7 +1220,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "CrossLoveEp1": {
@@ -1220,7 +1255,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Crossdressing in Camelot 0.12": {
@@ -1254,7 +1290,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Crossing Brothel ENGLISH": {
@@ -1288,7 +1325,8 @@
             "Vore": 1,
             "Protagonist": "Female",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Cure my Addiction": {
@@ -1322,7 +1360,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Curvy Triple-J-Cup Teachers DELUXE-final": {
@@ -1356,7 +1395,8 @@
             "Vore": 0,
             "Protagonist": "Male",
             "Gross": 0,
-            "Corruption": 0
+            "Corruption": 0,
+            "Shota": 0
         }
     },
     "Dark Desires v0.0.8": {
@@ -1390,7 +1430,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dark Neighbourhood-1.0": {
@@ -1424,7 +1465,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dating My Daughter": {
@@ -1458,7 +1500,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Daughter for Desert": {
@@ -1492,7 +1535,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Degrees of Lewdity 0.2.19.2": {
@@ -1514,19 +1558,20 @@
         "Tags": {
             "Animated": 1,
             "Bestiality": 1,
+            "Corruption": 0,
             "Femdom": 1,
             "Footjob": 1,
             "Furry": 1,
             "Futa/Trans": 1,
             "Gay": 1,
+            "Gross": 0,
             "Incest": 0,
             "Loli": 1,
             "Monster Girl": 1,
+            "Shota": 1,
             "Sissification": 1,
             "Vore": 1,
-            "Protagonist": "Multiple",
-            "Gross": 0,
-            "Corruption": 0
+            "Protagonist": "Multiple"
         }
     },
     "Demon Wants Have Fun": {
@@ -1560,7 +1605,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Demon's Sperm Ver.2.1": {
@@ -1594,7 +1640,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Depraved Awakening-1.0-pc": {
@@ -1628,7 +1675,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Descendo 0.5.1": {
@@ -1662,7 +1710,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Detective Masochist": {
@@ -1696,7 +1745,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Detective Masochist 2": {
@@ -1730,7 +1780,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "DevilsFamily-0.7.beta-pc": {
@@ -1764,7 +1815,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Devious World a59": {
@@ -1798,7 +1850,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Diminishment0232b_free": {
@@ -1832,7 +1885,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Do you have AKIRA Points": {
@@ -1866,7 +1920,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Domina 6.0.1": {
@@ -1900,7 +1955,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Domination Quest_v138": {
@@ -1934,7 +1990,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Doors-Ch3.p2.-pc": {
@@ -1968,7 +2025,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Double Homework": {
@@ -2002,7 +2060,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dr Amana - Sexual Therapist v1.1.5": {
@@ -2036,7 +2095,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dragon_Waifu-1.0-win": {
@@ -2070,7 +2130,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Drain Dungeon English": {
@@ -2104,7 +2165,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Drain Dungeon 2 [eng]": {
@@ -2138,7 +2200,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "DrawingMyLife-S1MXX-0.3-pc": {
@@ -2172,7 +2235,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dreaming of Dana-0.099-pc": {
@@ -2206,7 +2270,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dreams Of Desire EP12-ELITE-1.0.3-pc": {
@@ -2240,7 +2305,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dungeon Lord v1.0": {
@@ -2274,7 +2340,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Dungeon \uff06 Maid": {
@@ -2308,7 +2375,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Duplicity_0.1.0.5w4": {
@@ -2342,7 +2410,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "EF Carmen Cygni": {
@@ -2376,7 +2445,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "EarnYourFreedom-(0.10b)-pc": {
@@ -2410,7 +2480,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Ecchi Secret Kichi": {
@@ -2444,7 +2515,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Ecchi-na Kanojo (Natsu)": {
@@ -2478,7 +2550,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "ECHIDNA_WARS_DX_eng": {
@@ -2512,7 +2585,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "EDEN": {
@@ -2546,7 +2620,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Eileen ~The Curse of Futanari Succubus": {
@@ -2580,7 +2655,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "ElsasNightmares-1.6-pc": {
@@ -2614,7 +2690,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Elyse the Devil ~The Counterwar of Queen Elyse~ Final": {
@@ -2648,7 +2725,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Enchanted 0.1.5.2": {
@@ -2682,7 +2760,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Energy Drain ~Otoko no Ko Targeted By Futanari Girls and Succubi~": {
@@ -2716,7 +2795,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Erected City": {
@@ -2750,7 +2830,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Ero Mania Games": {
@@ -2784,7 +2865,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Eroico v10 - Kyrieru": {
@@ -2818,7 +2900,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "ErosSector_CH0-0.1.0-pc": {
@@ -2852,7 +2935,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Ethereal LegioN English": {
@@ -2886,7 +2970,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Evenicle": {
@@ -2920,7 +3005,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Event Girl 0.5.2": {
@@ -2954,7 +3040,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Exiles-ch2 v0.3.1-pc": {
@@ -2988,7 +3075,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "FILF-0.11c-pc": {
@@ -3022,7 +3110,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "FaefireFantasy-v0.1-pc": {
@@ -3056,7 +3145,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Fairy Fighting": {
@@ -3090,7 +3180,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Fairy war": {
@@ -3124,7 +3215,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Fairy war 2": {
@@ -3158,7 +3250,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Fall of Eden 0.5.6": {
@@ -3192,7 +3285,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Family_Affair-0.57-pc": {
@@ -3226,7 +3320,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Family Infestation 2020 V0.3.html": {
@@ -3260,7 +3355,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "FamilyatHome-1.0-win": {
@@ -3294,7 +3390,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "FEMALE KNIGHT RASIA ~The Lewd Curse of Penis~ (ENGLISH)": {
@@ -3328,7 +3425,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Femboy 1.3.5": {
@@ -3362,7 +3460,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Femina Equum Alpha": {
@@ -3396,7 +3495,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Feminine Body Products v1.2": {
@@ -3430,7 +3530,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Fetish Hotel 052": {
@@ -3464,7 +3565,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Fetish Locator": {
@@ -3498,7 +3600,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "FloraAndSauna-0.7": {
@@ -3532,7 +3635,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "flowerfairy_eng": {
@@ -3566,7 +3670,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "flowerwitch": {
@@ -3600,7 +3705,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Flying Princess - Inter Breed": {
@@ -3634,7 +3740,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Forest_Fairytales_2.4.1.html": {
@@ -3668,7 +3775,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "FOBS_A_ver1.20": {
@@ -3702,7 +3810,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Forget-Me-Not Gemini Fort_ENG": {
@@ -3736,7 +3845,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Fort of the Naughty World": {
@@ -3770,7 +3880,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Freya's Potion Shop 2.1.1": {
@@ -3804,7 +3915,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Friends of Mine 0.9.5": {
@@ -3838,7 +3950,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Frontier of Sister Indulgence": {
@@ -3872,7 +3985,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "FutaDream-1.3-pc": {
@@ -3906,7 +4020,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "FutaGroves-0.7-pc": {
@@ -3940,7 +4055,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "FutaParadise-0.1-pc": {
@@ -3974,7 +4090,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Futa Quest 0.75": {
@@ -4008,7 +4125,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "FutaDomWorld-0.7.2-pc": {
@@ -4042,7 +4160,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Futaland +DLC v0.2.3": {
@@ -4076,7 +4195,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Futanari Sorority": {
@@ -4110,7 +4230,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "GatesMotel-0.5-pc": {
@@ -4144,7 +4265,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "general-practitioner-pc": {
@@ -4178,7 +4300,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Get_Away 1.0.1": {
@@ -4212,7 +4335,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "GirlGames031-0.3.1-pc": {
@@ -4246,7 +4370,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Girls Hostel-100A": {
@@ -4280,7 +4405,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "GoldenMane - 0.03C - Windows - Patreon": {
@@ -4314,7 +4440,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "HSTutor-0.9.0-pc": {
@@ -4348,7 +4475,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Hack'n Stalk 1-3": {
@@ -4382,7 +4510,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Happy_Heart_Hell_Patreon1.3": {
@@ -4416,7 +4545,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Happy Heart Panic Build 10": {
@@ -4450,7 +4580,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Hard Love - Darkest Desire - Alpha 007s-v3": {
@@ -4484,7 +4615,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Hard Times in Hornstown v4.41": {
@@ -4518,7 +4650,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "HARDCODED 0.0.40": {
@@ -4552,7 +4685,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Harem Villa 1.0.0.1": {
@@ -4586,7 +4720,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Haunted Hump House 0.0.16": {
@@ -4620,7 +4755,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Havens Port Bld4": {
@@ -4654,7 +4790,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Healslut v0.4G2": {
@@ -4688,7 +4825,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Helenas Curse 0.1": {
@@ -4722,7 +4860,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Hen-party_EN": {
@@ -4756,7 +4895,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Wedding_1.02": {
@@ -4790,7 +4930,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Hentai University": {
@@ -4824,7 +4965,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Hero and Monster Gallery": {
@@ -4858,7 +5000,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "HircinesHarlots-1.0b-pc": {
@@ -4892,7 +5035,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Hitozuma Elf no Orusuban v1.05": {
@@ -4926,7 +5070,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Holy Slaves-1.1-pc": {
@@ -4960,7 +5105,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "House Arrest-2.0-pc": {
@@ -4994,7 +5140,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Hunter of Sin 0.1.1": {
@@ -5028,7 +5175,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "I am a Prostitute": {
@@ -5062,7 +5210,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "I_love_Daddy-1.0-pc": {
@@ -5096,7 +5245,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Imperium Fan Remake 0.5": {
@@ -5130,7 +5280,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Incest Story": {
@@ -5164,7 +5315,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "InnerDemons-0.01-pc": {
@@ -5198,7 +5350,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "InnerGrowth-0.7-pc": {
@@ -5232,7 +5385,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Insexual Awakening-1.0": {
@@ -5266,7 +5420,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Introducing An Apprentice Incubus (M) v2.2": {
@@ -5300,7 +5455,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "IrisLabyrinth": {
@@ -5334,7 +5490,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Isekai Lust  v0.03": {
@@ -5368,7 +5525,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Juicy Futa v0.4": {
@@ -5402,7 +5560,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Kami no Rhapsody": {
@@ -5436,7 +5595,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Kelly Family - MIL": {
@@ -5470,7 +5630,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Kincaid-2020.08": {
@@ -5504,7 +5665,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "KingsTales-Version-Demo-pc": {
@@ -5538,7 +5700,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "KinkyLifeGame_0_7_1": {
@@ -5572,7 +5735,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Kodukai Ecchi Oniichan I Want Spending Money Kiss": {
@@ -5606,7 +5770,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Kono Lolicon Domome!": {
@@ -5640,7 +5805,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Kurovadis v8 - Kyrieru": {
@@ -5674,7 +5840,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Lancaster Boarding House-Final": {
@@ -5708,7 +5875,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "LearnToLoveIt v0_0_4": {
@@ -5742,7 +5910,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Legend of the Spirit Orbs v1.4.1": {
@@ -5776,7 +5945,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Lewd Leaf Land - Maple Tea Ecstasy": {
@@ -5810,7 +5980,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Lewd Maze v0.7.144a": {
@@ -5844,7 +6015,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Lewdest Labyrinth v1.3": {
@@ -5878,7 +6050,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Libra of the Vampire Princess": {
@@ -5912,7 +6085,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Life Is Good-Final-pc": {
@@ -5946,7 +6120,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Life With Pleasure-v1.0": {
@@ -5980,7 +6155,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "LifeofDesmond-0.1-pc": {
@@ -6014,7 +6190,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Life with Mary-1.0.2-pc": {
@@ -6048,7 +6225,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "lilith in nightmare ver3.1": {
@@ -6082,7 +6260,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Lilith's Throne v0.3.9.1": {
@@ -6116,7 +6295,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Living with a Nympho": {
@@ -6150,7 +6330,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Loli Hoi SP Yae-chan Remember": {
@@ -6184,7 +6365,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "LostLife_1.2_dev": {
@@ -6218,7 +6400,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Love At First Sight": {
@@ -6252,7 +6435,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Lover of Mirror Image": {
@@ -6286,7 +6470,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Lucretias Legacy-1.0-pc": {
@@ -6320,7 +6505,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "LunarsChosen-0.12.2-pc": {
@@ -6354,7 +6540,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "LustAwakens-0.3-pc": {
@@ -6388,7 +6575,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Lust Epidemic  v.1.0": {
@@ -6422,7 +6610,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "LustfulDesires-0.25.0-pc": {
@@ -6456,7 +6645,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Magical Camp v0.4.7b": {
@@ -6490,7 +6680,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Man of the House v1.0.2c (extra)": {
@@ -6524,7 +6715,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Manor of Mystic Courtesans FINAL": {
@@ -6558,7 +6750,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Mansion": {
@@ -6592,7 +6785,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Maou Sama": {
@@ -6626,7 +6820,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Matenshi": {
@@ -6660,7 +6855,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Max the Elf Demo": {
@@ -6694,7 +6890,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Melly2": {
@@ -6728,7 +6925,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Melly": {
@@ -6762,7 +6960,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Melody-1.00-pc": {
@@ -6796,7 +6995,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "MidLifeCrisis-0.23a-pc": {
@@ -6830,7 +7030,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "milfs_control-0.8.1-pc": {
@@ -6864,7 +7065,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "milfs-villa-0.6.9-pc": {
@@ -6898,7 +7100,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Milfy_City-0.6e-pc": {
@@ -6932,7 +7135,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Milky Quest FINAL": {
@@ -6966,7 +7170,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Mira_and_the_Mysteries_of_Alchemy 1.01": {
@@ -7000,7 +7205,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "MogiOrigins_-_v1.85": {
@@ -7034,7 +7240,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Monline_0.7.10": {
@@ -7068,7 +7275,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Monmusu Conquered World vFinal": {
@@ -7102,7 +7310,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "monmusuPark_windows": {
@@ -7136,7 +7345,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Monster Addict 2.0": {
@@ -7170,7 +7380,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Monster Girl Farmer v0.7.01.url": {
@@ -7204,7 +7415,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Monster Girl Island v0.44.3": {
@@ -7238,7 +7450,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Monster Girl Labyrinth v1.0": {
@@ -7272,7 +7485,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "MGQ Parts 1-3 100% Translated": {
@@ -7306,7 +7520,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 1,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "MorningFutaBySanyanya-pc": {
@@ -7340,7 +7555,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "MovieNight 1-2 FINAL": {
@@ -7374,7 +7590,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "MsP&MsD-1.0-pc": {
@@ -7408,7 +7625,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Mucchi Fechi DX FINAL": {
@@ -7442,7 +7660,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "My Classmate": {
@@ -7476,7 +7695,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "My Destiny 0.15d (Public)": {
@@ -7510,7 +7730,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "my-girlfriends-amnesia-0.7.7-pc": {
@@ -7544,7 +7765,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "my-summer-0.4.7-pc": {
@@ -7578,7 +7800,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "ok...-0.1.8-win": {
@@ -7612,7 +7835,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "robots_touch-0.6.9-pc": {
@@ -7646,7 +7870,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "secretdesire040": {
@@ -7680,7 +7905,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "seeds-of-chaos-0.2.60-pc": {
@@ -7714,7 +7940,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "sissy slut 0.0.7": {
@@ -7748,7 +7975,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "succubus_E": {
@@ -7782,7 +8010,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "succubus tamer 2 ver4.1_translated": {
@@ -7816,7 +8045,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Lewd Succubi and Tower of Wishes ver4.2_translated": {
@@ -7850,7 +8080,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "succumate v1.03": {
@@ -7884,7 +8115,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "summerofshame_0.12.0_windows-x64": {
@@ -7917,6 +8149,42 @@
             "Loli": 0,
             "Monster Girl": 0,
             "Sissification": 1,
+            "Vore": 0,
+            "Protagonist": "Male",
+            "Shota": 0
+        }
+    },
+    "taboo-request-0.6.9-pc": {
+        "Info": {
+            "Title": "Taboo Request",
+            "Version": "0.6.9",
+            "URL": "https://f95zone.to/threads/taboo-request-unofficial-renpy-port-selectivepaperclip.19505/",
+            "Program Path": "taboo-request-0.6.9-pc\\taboo-request.exe",
+            "Description": "The game focuses mainly on the story. It\u2019s more realistic than my other games because here you can see consequences\\thoughts on both sides. I think that after Incest Story and Milf's Control that was a good idea to create something different at least once. The mom looks like milf not like adult teenager as usual."
+        },
+        "Categories": {
+            "Completed": 1,
+            "Eroge": 0,
+            "Favorite": 0,
+            "Status": "New",
+            "Format": "Ren'Py",
+            "Art": "3D"
+        },
+        "Tags": {
+            "Animated": 0,
+            "Bestiality": 0,
+            "Corruption": 0,
+            "Femdom": 0,
+            "Footjob": 0,
+            "Furry": 0,
+            "Futa/Trans": 0,
+            "Gay": 0,
+            "Gross": 0,
+            "Incest": 1,
+            "Loli": 0,
+            "Monster Girl": 0,
+            "Shota": 0,
+            "Sissification": 0,
             "Vore": 0,
             "Protagonist": "Male"
         }
@@ -7952,7 +8220,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Vel-pc": {
@@ -7986,7 +8255,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Tower Extended": {
@@ -8001,7 +8271,7 @@
             "Completed": 1,
             "Eroge": 0,
             "Favorite": 0,
-            "Status": "New",
+            "Status": "Beaten",
             "Format": "Flash",
             "Art": "Drawn"
         },
@@ -8018,6 +8288,7 @@
             "Incest": 0,
             "Loli": 0,
             "Monster Girl": 1,
+            "Shota": 0,
             "Sissification": 0,
             "Vore": 0,
             "Protagonist": "Male"
@@ -8054,7 +8325,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Tower Of Five Hearts [eng]": {
@@ -8088,7 +8360,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Tower of Trample 1.16.2.1": {
@@ -8122,7 +8395,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "TransexEducation-0.2-pc": {
@@ -8156,7 +8430,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Trap Quest R12v4.0": {
@@ -8190,7 +8465,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Trap Shrine ENG": {
@@ -8224,7 +8500,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Travel to Naal 0.1Fix": {
@@ -8258,7 +8535,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "TiTS 0.8.125": {
@@ -8292,7 +8570,8 @@
             "Monster Girl": 1,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Troll Busters": {
@@ -8326,7 +8605,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Twins of the Pasture vFinal": {
@@ -8360,7 +8640,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Twists of My Life-1.0.1-pc": {
@@ -8394,7 +8675,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "TwoStories0.2.1-0.2.1-pc": {
@@ -8428,7 +8710,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Unconventional Gym": {
@@ -8462,7 +8745,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Under The Witch_Ver_0_1_4": {
@@ -8496,7 +8780,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "UnexpectedAdventures-ch6 7-20": {
@@ -8530,7 +8815,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Unfinished_Business": {
@@ -8564,7 +8850,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Unknown"
+            "Protagonist": "Unknown",
+            "Shota": 0
         }
     },
     "Unteralterbach-all": {
@@ -8598,7 +8885,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Valeena Final": {
@@ -8632,7 +8920,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "ValorAndGlory_0.1.11_citizen": {
@@ -8666,7 +8955,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Vanimate 12.2020": {
@@ -8700,7 +8990,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "Venture Seas - Royal Summons": {
@@ -8734,7 +9025,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Victorias Body FINAL": {
@@ -8768,7 +9060,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Violated Hero": {
@@ -8802,7 +9095,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "visiting-sara-0.4.5-pc": {
@@ -8836,7 +9130,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Vitamin Quest": {
@@ -8870,7 +9165,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Vixen's Tale": {
@@ -8904,7 +9200,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "WVM-0.8.2-pc": {
@@ -8938,7 +9235,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Wanko_of_Marriage_Welcome_to_The_Dogs_Tail": {
@@ -8972,7 +9270,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Wanko to Kurasou -English-": {
@@ -9006,7 +9305,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Warlock_and_Boobs_v0.337.1": {
@@ -9040,7 +9340,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Welcome To Inventis 0.3": {
@@ -9074,7 +9375,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "What a Wonderful Day!! Complete": {
@@ -9108,7 +9410,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Futa/Trans"
+            "Protagonist": "Futa/Trans",
+            "Shota": 0
         }
     },
     "WhoremakerRelease22": {
@@ -9142,7 +9445,8 @@
             "Monster Girl": 0,
             "Sissification": 1,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "WickedChoicesRemastered-1.0.1": {
@@ -9176,7 +9480,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male/Female"
+            "Protagonist": "Male/Female",
+            "Shota": 0
         }
     },
     "Wild Life 2020.07.17": {
@@ -9210,7 +9515,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Multiple"
+            "Protagonist": "Multiple",
+            "Shota": 0
         }
     },
     "Wolf Girl With You 1.0.0.6": {
@@ -9244,7 +9550,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Wolf Tails-v12": {
@@ -9278,7 +9585,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "Womb of Calamity ENG": {
@@ -9312,7 +9620,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     },
     "WorldofBeauties-3.5(Securtiy_Department)-pc": {
@@ -9346,7 +9655,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "young marcus 6.0.0": {
@@ -9380,7 +9690,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Yui-tan, Your Onakko Assistant": {
@@ -9414,7 +9725,8 @@
             "Monster Girl": 0,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Male",
+            "Shota": 0
         }
     },
     "Yuki's Tale ENG": {
@@ -9448,41 +9760,8 @@
             "Monster Girl": 1,
             "Sissification": 0,
             "Vore": 0,
-            "Protagonist": "Female"
-        }
-    },
-    "taboo-request-0.6.9-pc": {
-        "Info": {
-            "Title": "taboo-request-0.6.9-pc",
-            "Version": "0.6.9",
-            "URL": "https://f95zone.to/threads/taboo-request-unofficial-renpy-port-selectivepaperclip.19505/",
-            "Program Path": "taboo-request-0.6.9-pc\\taboo-request.exe",
-            "Description": "The game focuses mainly on the story. It\u2019s more realistic than my other games because here you can see consequences\\thoughts on both sides. I think that after Incest Story and Milf's Control that was a good idea to create something different at least once. The mom looks like milf not like adult teenager as usual."
-        },
-        "Categories": {
-            "Completed": 1,
-            "Eroge": 0,
-            "Favorite": 0,
-            "Status": "New",
-            "Format": "Ren'Py",
-            "Art": "3D"
-        },
-        "Tags": {
-            "Animated": 0,
-            "Bestiality": 0,
-            "Corruption": 0,
-            "Femdom": 0,
-            "Footjob": 0,
-            "Furry": 0,
-            "Futa/Trans": 0,
-            "Gay": 0,
-            "Gross": 0,
-            "Incest": 1,
-            "Loli": 0,
-            "Monster Girl": 0,
-            "Sissification": 0,
-            "Vore": 0,
-            "Protagonist": "Male"
+            "Protagonist": "Female",
+            "Shota": 0
         }
     }
 }
