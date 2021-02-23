@@ -1,49 +1,50 @@
-from tkinter import Tk, Toplevel, Frame, Canvas, Label, Text, IntVar, StringVar, LabelFrame as LFrame
+from tkinter import Tk, Toplevel, Frame, Canvas, Label, Text, StringVar, LabelFrame as LFrame, Event, Widget
+from scrolledframe import ScrolledFrame as SFrame
 from tkinter.ttk import Style, Button, Notebook
 from os import startfile as os_startfile
-from requests import Session as req_url
-from re import split as re_split
 from changecolor import lighten, darken
-from scrolledframe import ScrolledFrame
 
-from editlist import EditGames, createSubFrm
+from constants import _createSubFrm as SubFrm
+from editlist import EditGames
 from constants import *
+
+from typing import Callable, TYPE_CHECKING
+if TYPE_CHECKING:
+    from tkinter.ttk import Combobox
+    from gamelibrary import GameLib
+    from tkinter import IntVar
+
+
+disp_child = list[U[Canvas, LFrame, Text]]
+disp_type = dict[SFrame, dict[Canvas, dict[str, U[str, disp_child]]]]
 
 
 class GUI(Tk):
     def __init__(self):
         Tk.__init__(self)
-        self.configure(padx=PAD*2)
-        self.geometry('{}x{}+{:.0f}+{:.0f}'.format(MAIN_WD,
-                                                   MAIN_HT,
-                                                   CENTER.x - MAIN_WD / 2,
-                                                   CENTER.y - MAIN_HT / 2))
+        self.configure(padx=PAD)
+        self.geometry(f'{MAIN_WD}'
+                      f'x{MAIN_HT}'
+                      f'+{CENTER.x - MAIN_WD / 2:.0f}'
+                      f'+{CENTER.y - MAIN_HT / 2:.0f}')
         self.title("Game List")
-        s = Style()
-        s.configure('.', font=FONT_MD)
-
-        self.defBG = self.cget('bg')
-        self.litBG = lighten('RGB',
-                             self.winfo_rgb(self.defBG),
-                             5,
-                             'HEX',
-                             16)
-        self.statMsg = StringVar(self)
-        self.browseAll = False
-        self.pages = list()
+        Style().configure('.', font=FONT_MD)
         self.update_idletasks()
 
-    def start_main(self, gameClass):
+    def start_main(self, gamelib: "GameLib") -> None:
         # init vars
-        self.gameClass = gameClass
-        self.catToggles = {i: IntVar() for i in CAT_TOG}
-        self.catLists = dict()
-        self.tagToggles = {i: IntVar() for i in TAG_TOG}
-        self.tagLists = dict()
-        self.gameList = {**self.gameClass.masterList}
-        self.prevSearch = dict()
+        self.gamelib = gamelib
+        self.bgDef = str('SystemButtonFace')
+        self.bgLit = str(lighten(color=self.winfo_rgb(self.bgDef),
+                                 percent=5,
+                                 inputtype='RGB',
+                                 bitdepth=16))
+        self.statMsg = StringVar()
+        self.displayData: disp_type = dict()
+        self.gameSearch = list(self.gamelib.masterlist)
+        self.curSearch: dict[str, U[str, int]] = dict()
         # add elements
-        chkBtn = Button(self,
+        chkBtn = Button(master=self,
                         text="Check for new games",
                         command=self.checkForNew)
         chkBtn.place(anchor='sw',
@@ -51,16 +52,12 @@ class GUI(Tk):
                      x=PAD,
                      y=SEARCH_HT)
         self.createSearch()
-        self.createBrowse()
+        self.createDisplay()
+        self.showDisplay()
 
-    def checkForNew(self):
-        updateGames = self.gameClass.checkForNewGames()
-        if updateGames:
-            self.searchBrowse()
-
-    def createSearch(self):
+    def createSearch(self) -> None:
         # create container
-        self.searchFrm = LFrame(self,
+        self.searchFrm = LFrame(master=self,
                                 font=FONT_LG,
                                 text="Search",
                                 padx=PAD)
@@ -69,391 +66,430 @@ class GUI(Tk):
                              rely=0,
                              relwidth=0.6,
                              height=SEARCH_HT)
-        for n in [0, 1]:
-            self.searchFrm.rowconfigure(n, weight=2)
         self.searchFrm.columnconfigure(0, weight=1)
+        self.searchFrm.rowconfigure(0, weight=2)
+        self.searchFrm.rowconfigure(1, weight=2)
         # add categories
-        createSubFrm(self.searchFrm,
-                     "Categories",
-                     0,
-                     self.catToggles,
-                     self.catLists,
-                     CAT_LST,
-                     MAX_CAT_COL,
-                     True)
+        cfrm, self.catToggles, self.catSelects = SubFrm.cats(
+            parent=self.searchFrm,
+            setCbx=True)
+        cfrm.grid(column=0,
+                  row=0,
+                  sticky='nsew')
         # add tags
-        createSubFrm(self.searchFrm,
-                     "Tags",
-                     1,
-                     self.tagToggles,
-                     self.tagLists,
-                     TAG_LST,
-                     MAX_TAG_COL,
-                     True)
+        tfrm, self.tagToggles, self.tagSelects = SubFrm.tags(
+            parent=self.searchFrm,
+            setCbx=True)
+        tfrm.grid(column=0,
+                  row=1,
+                  sticky='nsew')
         # add buttons
-        btnFrm = Frame(self.searchFrm)
-        btnFrm.grid(row=2,
-                    column=0,
+        btnFrm = Frame(master=self.searchFrm)
+        btnFrm.grid(column=0,
+                    row=2,
                     pady=PAD)
-        for n in range(3):
-            btnFrm.columnconfigure(n, weight=1)
-        b1 = Button(btnFrm,
-                    text="Clear",
-                    command=self.clearSearch)
-        b1.grid(row=0,
-                column=0,
-                padx=50)
-        b2 = Button(btnFrm,
-                    text="Browse All",
-                    command=lambda: self.clearSearch("all"))
-        b2.grid(row=0,
-                column=1,
-                padx=50)
-        b3 = Button(btnFrm,
-                    text="Go!",
-                    command=self.searchBrowse)
-        b3.grid(row=0,
-                column=2,
-                padx=50)
+        btnFrm.columnconfigure(0, weight=1)
+        btnFrm.columnconfigure(1, weight=1)
+        clrBtn = Button(master=btnFrm,
+                        text="Clear",
+                        command=self.clearSearch)
+        clrBtn.grid(column=0,
+                    row=0,
+                    padx=50)
+        srchBtn = Button(master=btnFrm,
+                         text="Search",
+                         command=self.searchBrowse)
+        srchBtn.grid(column=1,
+                     row=0,
+                     padx=50)
 
-    def createBrowse(self):
-        self.browseFrm = Frame(self,
-                               padx=PAD,
-                               pady=PAD,
-                               bd=2,
-                               relief='sunken')
-        self.browseFrm.columnconfigure(0, weight=1)
-        self.browseFrm.rowconfigure(0, weight=1)
-        self.browseFrm.place(anchor='s',
-                             relx=0.5,
-                             rely=1,
-                             y=-PAD,
-                             relwidth=1,
-                             relheight=1,
-                             height=-SEARCH_HT-PAD*2)
+    def createDisplay(self) -> None:
+        displayFrm = Frame(master=self,
+                           padx=PAD,
+                           pady=PAD,
+                           bd=2,
+                           relief='sunken')
+        displayFrm.columnconfigure(0, weight=1)
+        displayFrm.rowconfigure(0, weight=1)
+        displayFrm.place(anchor='s',
+                         relx=0.5,
+                         rely=1,
+                         y=(-PAD),
+                         relwidth=1,
+                         relheight=1,
+                         height=(-SEARCH_HT - PAD * 2))
 
-        self.recentFrm = LFrame(self.browseFrm,
-                                text="Recently Played",
-                                font=FONT_LG + " bold",
-                                labelanchor='n')
-        self.recentScrl = self.createScrollFrm(self.recentFrm)
-        self.recentScrl.place(relx=0, rely=0, relwidth=1, relheight=1)
-        self.recentFrm.grid(row=0, column=0, sticky='nsew')
-        self.recentFrm.grid_remove()
+        self.gameDisplay = Notebook(master=displayFrm)
+        self.recentScrl = self.createScrollFrm(parent=self.gameDisplay)
+        self.gameDisplay.add(self.recentScrl.container, text='  Recent  ')
+        self.gameDisplay.grid(column=0,
+                              row=0,
+                              sticky='nsew')
+        self.gameDisplay.grid_remove()
 
-        self.allTabs = Notebook(self.browseFrm)
-        self.allTabs.grid(row=0, column=0, sticky='nsew')
-        self.allTabs.grid_remove()
-
-        self.searchTabs = Notebook(self.browseFrm)
-        self.searchTabs.grid(row=0, column=0, sticky='nsew')
-        self.searchTabs.grid_remove()
-
-        self.statMsg.set("Loading, Please Wait...")
-        self.statLbl = Label(self.browseFrm,
+        self.statLbl = Label(master=displayFrm,
                              textvariable=self.statMsg,
                              font=FONT_LG)
-        self.statLbl.grid(row=0, column=0, sticky='nsew')
+        self.statLbl.grid(column=0,
+                          row=0,
+                          sticky='nsew')
 
-        self.update()
+        self.showLabel("Loading")
         self.redrawRecent()
-        self.drawList(self.allTabs)
-        self.statLbl.grid_remove()
-        self.recentFrm.grid()
+        self.redrawDisplay()
 
-    def createScrollFrm(self, parent):
-        return ScrolledFrame(parent,
-                             scrollbars='e',
-                             padding=PAD,
-                             dohide=False,
-                             doupdate=False,
-                             scrollspeed=1,
-                             relief='sunken',
-                             bd=1)
+    @staticmethod
+    def createScrollFrm(parent: U[Notebook, Toplevel], padding: U[list, int] = [0, 0, 0, PAD], dohide: bool = False, bd: int = 1) -> SFrame:
+        return SFrame(master=parent,
+                      scrollbars='e',
+                      padding=padding,
+                      dohide=dohide,
+                      doupdate=False,
+                      scrollspeed=1,
+                      relief='sunken',
+                      bd=bd)
 
-    def redrawRecent(self):
+    def redrawRecent(self) -> None:
         for w in self.recentScrl.winfo_children():
             w.destroy()
-        for gFol, data in self.gameClass.masterList.items():
-            if data['Info']['Title'] in self.gameClass.recentList:
-                i = self.gameClass.recentList.index(data['Info']['Title'])
-                BG = self.litBG if (i % 2) else self.defBG
+        for gFol, data in self.gamelib.masterlist.items():
+            title = data['Info']['Title']
+            if title in self.gamelib.recentList:
+                i = self.gamelib.recentList.index(title)
+                bg = self.bgLit if (i % 2) else self.bgDef
                 lineItem = Canvas(self.recentScrl,
-                                  background=BG)
-                lineItem.grid(row=i,
-                              column=0,
-                              padx=PAD / 2,
-                              pady=PAD / 2)
-                self.fillLineItem(lineItem,
-                                  BG,
-                                  gFol,
-                                  data)
-        self.update_idletasks()
+                                  background=bg)
+                lineItem.grid(column=0,
+                              row=i,
+                              padx=(PAD / 2),
+                              pady=(PAD / 2))
+                self.fillLineItem(lineItem=lineItem,
+                                  bg=bg,
+                                  gFol=gFol,
+                                  data=data)
         self.recentScrl.redraw()
 
-    def redrawBrowse(self, show):
-        if show == "all":
-            self.statLbl.grid_remove()
-            self.allTabs.grid()
-        else:
-            self.drawList(self.searchTabs)
-            self.statLbl.grid_remove()
-            if show == "recent":
-                self.recentFrm.grid()
-            else:
-                self.searchTabs.grid()
-
-    def drawList(self, parent):
-        pages = list()
-        l = -(-len(self.gameList) // GAMES_PER_PAGE)
-        for n in range(l):
-            f = self.createScrollFrm(parent)
-            pages.append(f)
-            parent.add(f.container, text="Page {}".format(n+1))
-        ct = 0
-        for n, (gFol, data) in enumerate(self.gameList.items()):
-            i = n - (ct * GAMES_PER_PAGE)
-            if i == GAMES_PER_PAGE:
-                ct += 1
-                i = n - (ct * GAMES_PER_PAGE)
-            pg = pages[ct]
-            BG = self.litBG if (i % 2) else self.defBG
-            lineItem = Canvas(pg,
-                              background=BG)
-            lineItem.grid(row=i,
-                          column=0,
-                          padx=PAD / 2,
-                          pady=PAD / 2)
-            self.fillLineItem(lineItem,
-                              BG,
-                              gFol,
-                              data)
-        self.update_idletasks()
-        for pg in pages:
+    def redrawDisplay(self) -> None:
+        for page in self.displayData:
+            page.destroy()
+        self.displayData.clear()
+        pgSplit = self.gamelib.splitByLetter()
+        for pg, gFols in pgSplit.items():
+            sframe = self.createScrollFrm(self.gameDisplay)
+            self.displayData[sframe] = dict()
+            self.gameDisplay.add(sframe.container, text=f'{pg: ^10}')
+            for row, gFol in enumerate(gFols):
+                data = self.gamelib.masterlist.get(gFol)
+                bg = self.bgLit if (row % 2) else self.bgDef
+                lineItem = Canvas(sframe,
+                                  background=bg)
+                lineItem.grid(column=0,
+                              row=row,
+                              padx=PAD / 2,
+                              pady=PAD / 2)
+                self.fillLineItem(lineItem=lineItem,
+                                  bg=bg,
+                                  gFol=gFol,
+                                  data=data,
+                                  page=sframe)
+        for pg in self.displayData:
             pg.redraw()
 
-    def fillLineItem(self, lineItem, BG, gFol, data):
+    def showDisplay(self) -> None:
+        self.statLbl.grid_remove()
+        self.gameDisplay.grid()
+        self.update()
 
-        def canvasButton(color, txt, row, cmd, fnt=FONT_SM):
+    def showLabel(self, msg: str) -> None:
+        self.statMsg.set(f"{msg}, Please Wait...")
+        self.gameDisplay.grid_remove()
+        self.statLbl.grid()
+        self.update()
+
+    def fillLineItem(self, lineItem: Canvas, bg: str, gFol: str, data: GAMEDATA_TYPE,
+                     page: Opt[SFrame] = None) -> None:
+
+        def canvasButton(color: str, txt: str, cmd: Callable[[Event], None], fnt: str = FONT_SM) -> Canvas:
             cnvBtn = Canvas(toolFrm,
                             width=BTN_SIZE,
                             height=BTN_SIZE,
-                            bg=BG)
-            cnvBtn.grid(row=row,
-                        column=0,
+                            bg=bg)
+            cnvBtn.grid(column=0,
+                        row=curRow,
                         sticky='ns',
                         pady=2)
             cir = cnvBtn.create_oval(0, 0,
-                                     BTN_SIZE-1,
-                                     BTN_SIZE-1,
+                                     BTN_SIZE - 1,
+                                     BTN_SIZE - 1,
                                      fill=color)
-            cnvBtn.create_text(BTN_SIZE/2,
-                               BTN_SIZE/2,
+            cnvBtn.create_text(BTN_SIZE / 2,
+                               BTN_SIZE / 2,
                                text=txt,
                                font=fnt)
-            hlcolor = darken('HEX', color)
+            hlcolor = str(darken(color=color,
+                                 inputtype='HEX'))
             cnvBtn.bind('<ButtonRelease-1>', cmd)
-            def onEnter(e): cnvBtn.itemconfig(cir, fill=hlcolor)
+            def onEnter(_): cnvBtn.itemconfig(cir, fill=hlcolor)
             cnvBtn.bind('<Enter>', onEnter)
-            def onLeave(e): cnvBtn.itemconfig(cir, fill=color)
+            def onLeave(_): cnvBtn.itemconfig(cir, fill=color)
             cnvBtn.bind('<Leave>', onLeave)
+            return cnvBtn
 
-        def textbox(title, wt, txt, txtcol='SystemButtonText'):
+        def textbox(title: str, wd: int, txt: str, txtcol: str = 'SystemButtonText') -> list[LFrame, Text]:
             lf = LFrame(lineItem,
                         font=FONT_SM,
                         text=title,
-                        background=BG)
-            lf.grid(row=0,
-                    column=curCol,
+                        background=bg)
+            lf.grid(column=curCol,
+                    row=0,
                     sticky='ns')
             t = Text(lf,
                      font=FONT_MD,
+                     width=wd,
                      height=5,
-                     width=wt,
                      wrap='word',
                      padx=PAD / 2,
                      pady=PAD / 2,
-                     background=BG,
+                     background=bg,
                      foreground=txtcol)
             t.grid()
             t.insert('end', txt)
             t.config(state='disabled')
+            return [lf, t]
 
-        info = {**data['Info']}
-        cats = {**data['Categories']}
-        tags = {**data['Tags']}
-        gTitle = info['Title']
-        curCol = 0
+        info = data['Info'].copy()
+        cats = data['Categories'].copy()
+        tags = data['Tags'].copy()
+        gTitle: str = info['Title']
+        children: disp_child = list()
+
         # tools
         toolFrm = LFrame(lineItem,
                          font=FONT_SM,
                          text='Tools',
-                         background=BG)
-        toolFrm.grid(row=0,
-                     column=curCol,
+                         background=bg)
+        toolFrm.grid(column=0,
+                     row=0,
                      sticky='ns')
         toolFrm.columnconfigure(0, weight=1)
+        children.append(toolFrm)
+
+        curCol = curRow = int()
 
         # play btn
-        def playBtn(event): self.startGame(event,
-                                           gFolder=gFol,
-                                           gTitle=gTitle,
-                                           gPath=info['Program Path'])
-        canvasButton(color='#87ffb9',
-                     txt='▶',
-                     row=0,
-                     cmd=playBtn,
-                     fnt=FONT_LG)
+        def playBtn(event: Event): self.startGame(event=event,
+                                                  gFolder=gFol,
+                                                  gTitle=gTitle,
+                                                  gPath=info['Program Path'])
+        children.append(canvasButton(color=COLOR_PLAY,
+                                     txt='▶',
+                                     cmd=playBtn,
+                                     fnt=FONT_LG))
         # link btn
-        def linkBtn(e): self.checkForUpdate(info['URL'])
-        canvasButton(color='#9cd4ff',
-                     txt='www',
-                     row=1,
-                     cmd=linkBtn)
+        curRow += 1
+        def linkBtn(_): os_startfile(info['URL'])
+        children.append(canvasButton(color=COLOR_LINK,
+                                     txt='www',
+                                     cmd=linkBtn))
         # edit btn
-        def editBtn(e): self.editGame(e, gFol)
-        canvasButton(color='#e3b668',
-                     txt='Edit',
-                     row=2,
-                     cmd=editBtn)
+        curRow += 1
+        def editBtn(event: Event): self.editGame(event=event,
+                                                 game=gFol)
+        children.append(canvasButton(color=COLOR_EDIT,
+                                     txt='Edit',
+                                     cmd=editBtn))
         # title
         curCol += 1
         txtcol = 'gold' if cats.pop('Favorite') else 'SystemButtonText'
-        textbox(title="Title",
-                wt=17,
-                txt=gTitle,
-                txtcol=txtcol)
+        children += textbox(title="Title",
+                            wd=17,
+                            txt=gTitle,
+                            txtcol=txtcol)
         # version
         curCol += 1
         txtcol = 'white' if cats.pop('Completed') else 'SystemButtonText'
-        textbox(title="Version",
-                wt=8,
-                txt=info['Version'],
-                txtcol=txtcol)
+        children += textbox(title="Version",
+                            wd=8,
+                            txt=info['Version'],
+                            txtcol=txtcol)
         # categories
         curCol += 1
-        curCats = ['[Eroge]'] if cats.pop('Eroge') else []
-        curCats += ['{}: {}'.format(c, v) for c, v in cats.items()]
-        textbox(title="Categories",
-                wt=15,
-                txt='\n'.join(curCats))
+        curCats = ['[Eroge]'] if cats.pop('Eroge') else list()
+        curCats += [f'{c}: {v}' for c, v in cats.items()]
+        children += textbox(title="Categories",
+                            wd=15,
+                            txt='\n'.join(curCats))
         # tags
         curCol += 1
-        curTags = [t for t, v in tags.items() if v and t not in TAG_LST]
-        curTags += ['{} {}'.format(tags['{}'.format(n)], n) for n in TAG_LST]
-        textbox(title="Tags",
-                wt=23,
-                txt=', '.join(curTags))
+        curTags = [t for t, v in tags.items()
+                   if v and t not in TAG_SEL]
+        curTags += [f'{tags[n]} {n}' for n in TAG_SEL]
+        children += textbox(title="Tags",
+                            wd=23,
+                            txt=', '.join(curTags))
         # description
         curCol += 1
-        textbox(title="Description",
-                wt=75,
-                txt=info['Description'])
+        children += textbox(title="Description",
+                            wd=75,
+                            txt=info['Description'])
+        # save to dict
+        if page:
+            self.displayData[page][lineItem] = dict(folder=gFol,
+                                                    children=children)
 
-    def checkForUpdate(self, curUrl):
-        if 'f95zone' in curUrl:
-            if curUrl == req_url().head(curUrl, allow_redirects=True).url:
-                if not Mbox.askyesno("No update", "There has been no update according to the url. Open anyway?"):
-                    return
-        os_startfile(curUrl)
-
-    def startGame(self, event, gFolder, gTitle, gPath):
-        def run(exe, sub=None):
-            if sub:
-                sub.destroy()
+    def startGame(self, event: Event, gFolder: str, gTitle: str, gPath: U[str, list, dict]) -> None:
+        def run(exe: str) -> None:
+            if tw:
+                tw.destroy()
             try:
                 os_startfile(exe)
-                orig = self.gameClass.recentList.copy()
-                if gTitle in self.gameClass.recentList:
-                    self.gameClass.recentList.remove(gTitle)
-                self.gameClass.recentList.insert(0, gTitle)
-                while len(self.gameClass.recentList) > 10:
-                    self.gameClass.recentList.pop()
-                if self.gameClass.recentList != orig:
+                # update recent
+                curList = self.gamelib.recentList.copy()
+                if gTitle in curList:
+                    curList.remove(gTitle)
+                curList.insert(0, gTitle)
+                while len(curList) > MAX_RECENT_GAMES:
+                    curList.pop()
+                if curList != self.gamelib.recentList:
+                    self.gamelib.recentList = curList
                     self.redrawRecent()
-                    self.gameClass.saveRecent()
+                    self.gamelib.saveRecent()
             except Exception:
-                if Mbox.askyesno("Error", "Couldn't start '{}'.\nWould you like to change the executable path?\n{}".format(gTitle, gPath)):
+                if Mbox.askyesno(title="Error",
+                                 message=(f"Couldn't start '{gTitle}'.\n"
+                                          f"Would you like to change the executable path? "
+                                          f"(Current Path = '{exe}')")):
                     self.editGame(event, gFolder)
-        if ';' in gPath:
-            tw = Toplevel(self, padx=PAD, pady=PAD)
-            tw.overrideredirect(1)
-            tw.geometry('+{}+{}'.format(event.x_root, event.y_root))
-            tw.focus_set()
-            tw.bind('<FocusOut>', lambda e: tw.destroy())
-            for exePath in re_split(r'; ?', gPath):
-                exe = os_path.join(PATH_GAMES, exePath)
-                name = os_path.splitext(os_path.basename(exePath))[0]
-                btn = Button(tw,
-                             text=name,
-                             command=lambda x=exe: run(x, tw))
-                btn.pack()
-        else:
-            exe = os_path.join(PATH_GAMES, gPath)
-            run(exe)
 
-    def editGame(self, event, game):
-        updateGame = EditGames(self,
-                               self.gameClass,
-                               [game])
+        pathInfo = dict()
+        if isinstance(gPath, str):
+            tw = None
+            run(os_path.join(PATH_GAMES, gPath))
+        else:
+            tw = Toplevel(master=self,
+                          padx=PAD,
+                          pady=PAD)
+            tw.overrideredirect(1)
+            scrl = SFrame(master=tw,
+                          scrollbars='e',
+                          padding=0,
+                          doupdate=False,
+                          scrollspeed=1,
+                          bd=0)
+            scrl.place(relx=0,
+                       rely=0,
+                       relwidth=1,
+                       relheight=1)
+            if isinstance(gPath, dict):
+                for lbl, ex in gPath.items():
+                    pathInfo[lbl] = os_path.join(PATH_GAMES, ex)
+            else:
+                for ex in gPath:
+                    lbl = os_path.splitext(os_path.basename(ex))[0]
+                    pathInfo[lbl] = os_path.join(PATH_GAMES, ex)
+            for lbl, exePath in pathInfo.items():
+                btn = Button(master=scrl,
+                             text=lbl,
+                             command=lambda x=exePath: run(x))
+                btn.pack()
+            scrl.redraw()
+            wd = (scrl.winfo_reqwidth() + scrl.vScrbar.winfo_reqwidth() + PAD * 2)
+            ht = min(RUN_MAX_HT, (scrl.winfo_reqheight() + PAD * 2))
+            posX = event.x_root - 5
+            posY = event.y_root
+            if (posX + wd) > CENTER.mon.width:
+                posX = (posX - wd)
+            if (posY + ht) > CENTER.mon.height:
+                posY = (posY - ht)
+            tw.geometry(f'{wd}x{ht}+{posX}+{posY}')
+            tw.focus_set()
+            tw.bind('<FocusOut>', lambda _: tw.destroy())
+
+    def editGame(self, event: Event, game: str) -> None:
+        updateGame: str = EditGames(parent=self,
+                                    gamelib=self.gamelib,
+                                    allGames=[game])
         if updateGame:
-            lineItem = event.widget
+            # get vars
+            item: Widget = event.widget
             for _ in range(2):
-                lineItem = self.nametowidget(lineItem.winfo_parent())
-            BG = lineItem.cget('background')
+                item = self.nametowidget(item.winfo_parent())
+            lineItem: Canvas = item
+            for page, line in self.displayData.items():
+                if lineItem in line:
+                    break
+            if not page:
+                return
+            bg: str = lineItem.cget('background')
+            data = self.gamelib.masterlist[updateGame]
+            # remove current children
             for child in lineItem.winfo_children():
                 child.destroy()
-            data = self.gameClass.masterList[game]
-            self.gameList.update({game: data})
-            self.fillLineItem(lineItem,
-                              BG,
-                              updateGame,
-                              data)
-            self.scrollFrm.redraw()
+            # update gameSearch
+            if updateGame not in self.gameSearch and game in self.gameSearch:
+                self.gameSearch.pop(self.gameSearch.index(game))
+                self.gameSearch.append(updateGame)
+            # refill line item
+            self.fillLineItem(lineItem=lineItem,
+                              bg=bg,
+                              gFol=updateGame,
+                              data=data,
+                              page=page)
+            page.redraw()
 
-    def clearBrowse(self):
-        self.allTabs.grid_remove()
-        self.searchTabs.grid_remove()
-        self.recentFrm.grid_remove()
-        self.statLbl.grid()
-        self.update()
-        for w in self.searchTabs.winfo_children():
-            self.searchTabs.forget(w)
+    def checkForNew(self) -> None:
+        updateGames = self.gamelib.checkForNewGames()
+        if updateGames:
+            self.showLabel("Reloading")
+            self.redrawDisplay()
+            if self.curSearch:
+                self.clearSearch("Reloading")
+            self.showDisplay()
 
-    def searchBrowse(self):
-        sInfo = {**self.catToggles, **self.catLists,
-                 **self.tagToggles, **self.tagLists}
+    def updateDisplay(self) -> None:
+        index = int()
+        for lines in self.displayData.values():
+            for line, info in lines.items():
+                if info['folder'] in self.gameSearch:
+                    bg = self.bgLit if (index % 2) else self.bgDef
+                    line.grid()
+                    line.configure(background=bg)
+                    for w in info['children']:
+                        w.configure(background=bg)
+                    index += 1
+                else:
+                    line.grid_remove()
+        for pg in self.displayData:
+            pg.redraw()
+
+    def clearSearch(self, lbl: str = "Clearing") -> None:
+        for chk in (self.catToggles | self.tagToggles).values():
+            chk.set(0)
+        for cbx in (self.catSelects | self.tagSelects).values():
+            cbx.current(0)
+        if self.curSearch:
+            self.showLabel(lbl)
+            self.gameSearch = list(self.gamelib.masterlist)
+            self.updateDisplay()
+            self.curSearch.clear()
+            self.showDisplay()
+
+    def searchBrowse(self) -> None:
+        sInfo: dict[str, U[IntVar, Combobox]]
+        sInfo = (self.catToggles | self.catSelects |
+                 self.tagToggles | self.tagSelects)
         search = {k: v.get() for k, v in sInfo.items()
                   if v.get() not in [0, 'Any']}
-        if search != self.prevSearch:
-            self.browseAll = False
-            self.statMsg.set("Searching, Please Wait...")
-            self.clearBrowse()
-            self.prevSearch = {**search}
-            self.gameList = dict()
-            for game, allData in self.gameClass.masterList.items():
-                data = {**allData['Categories'], **allData['Tags']}
-                if search.items() <= data.items():
-                    self.gameList.update({game: allData})
-            self.redrawBrowse("browse")
-
-    def clearSearch(self, show="recent"):
-        self.statMsg.set("Clearing, Please Wait...")
-        self.clearBrowse()
-        for _, v in {**self.catToggles, **self.tagToggles}.items():
-            v.set(0)
-        for _, v in {**self.catLists, **self.tagLists}.items():
-            v.current(0)
-        redraw = False
-        if show == "all" and not self.browseAll:
-            self.statMsg.set("Loading, Please Wait...")
-            self.update_idletasks()
-            self.browseAll = True
-            redraw = True
-        elif show == "recent" and self.browseAll:
-            self.browseAll = False
-            redraw = True
-        if self.prevSearch or redraw:
-            self.prevSearch = dict()
-            self.gameList = {**self.gameClass.masterList}
-            self.redrawBrowse(show)
+        if search != self.curSearch:
+            if search:
+                self.showLabel("Searching")
+                self.gameSearch.clear()
+                for gFol, allData in self.gamelib.masterlist.items():
+                    data = (allData['Categories'] | allData['Tags'])
+                    if search.items() <= data.items():
+                        self.gameSearch.append(gFol)
+                self.updateDisplay()
+                self.curSearch = search
+                self.showDisplay()
+            else:
+                self.clearSearch()

@@ -1,416 +1,633 @@
-from tkinter import Canvas, IntVar, StringVar, Text, LabelFrame as LFrame, messagebox as Mbox
+from tkinter import Tk, Canvas, Frame, StringVar, Text, LabelFrame as LFrame
 from tkinter.filedialog import askopenfilenames as Askfiles
+from tkinter.ttk import Label, Entry, Button, Style
 from tkinter.simpledialog import Dialog
-from tkinter.ttk import Label, Button, Entry, Checkbutton, Combobox
+
 from os import startfile as os_startfile, listdir as os_listdir, system as os_system
 from re import sub as re_sub, findall as re_findall
-from requests import Session as req_url
-from lxml import html as Html
+from bs4 import BeautifulSoup as Html
+from urllib3 import PoolManager
+from changecolor import invert
 
+from constants import _createSubFrm as SubFrm, _SELECTOR as Sel
 from constants import *
+from scrolledframe import ScrolledFrame as SFrame
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from gamelibrary import GameLib
+    from tkinter import IntVar
+    from tkinter.ttk import Combobox
 
 
 class _EditGamesDialog(Dialog):
-    def __init__(self, parent, gameClass, allGames, showSkip):
+    def __init__(self, parent: U[Tk, LFrame, Canvas], gamelib: "GameLib", allGames: U[dict, list], adding: bool):
         self.parent = parent
-        self.gameClass = gameClass
+        self.gamelib = gamelib
         self.allGames = allGames
-        self.showSkip = showSkip
+        self.adding = adding
         self.updateGames = False
+        if adding:
+            self.newGameCt = len(allGames)
+            if self.newGameCt > 1:
+                self.wintitle = f"Add Games ({{}} of {self.newGameCt})"
+                title = self.wintitle.format(1)
+            else:
+                title = "Add Game"
+        else:
+            title = "Edit Game"
         Dialog.__init__(self,
-                        self.parent,
-                        "Edit Games")
+                        parent=self.parent,
+                        title=title)
 
-    def buttonbox(self):
+    def buttonbox(self) -> None:
         btnFrm = LFrame(self,
                         pady=PAD)
         btnFrm.pack(fill='x')
         for n in range(3):
             btnFrm.columnconfigure(n, weight=1)
-        curCol = 0
-        st = ['', ''] if self.showSkip else ['e', 'w']
+        curCol = int()
         closeBtn = Button(btnFrm,
                           text="Close",
                           command=self.destroy)
-        closeBtn.grid(row=0,
-                      column=curCol,
-                      sticky=st[0],
+        closeBtn.grid(column=curCol,
+                      row=0,
+                      sticky='' if self.adding else 'e',
                       padx=25)
         curCol += 1
-        if self.showSkip:
+        if self.adding:
             skipBtn = Button(btnFrm,
                              text="Skip",
                              command=self.getNext)
-            skipBtn.grid(row=0,
-                         column=curCol,
+            skipBtn.grid(column=curCol,
+                         row=0,
                          padx=25)
         curCol += 1
-        self.saveBtn = Button(btnFrm,
-                              text="Save",
-                              command=self.submit)
-        self.saveBtn.grid(row=0,
-                          column=curCol,
-                          sticky=st[1],
-                          padx=25)
+        saveBtn = Button(btnFrm,
+                         text="Save",
+                         command=self.submit)
+        saveBtn.grid(column=curCol,
+                     row=0,
+                     sticky='' if self.adding else 'w',
+                     padx=25)
 
-    def body(self, master):
+    def body(self, _) -> Entry:
         # initialize window
         self.geometry(self.parent.geometry())
-        self.geometry('{:.0f}x{:.0f}'.format(EDIT_WD, EDIT_WD))
+        self.geometry(f'{EDIT_WD}x{EDIT_HT}')
+        invertTextCol = str(invert(color=self.winfo_rgb('SystemButtonText'),
+                                   inputtype='RGB',
+                                   bitdepth=16))
+        Style().configure('Path.TEntry',
+                          foreground=invertTextCol)
         # create container
         self.cnvs = Canvas(self)
         self.cnvs.pack(expand=True,
                        fill='both')
-        for n in list('123'):
-            self.cnvs.rowconfigure(n, weight=1)
         self.cnvs.columnconfigure(0, weight=1)
+        for n in [1, 2, 3]:
+            self.cnvs.rowconfigure(n, weight=1)
         # create GUI
         self.createHeader()
         self.createInfoFrm()
-        self.createCatFrm()
-        self.createTagFrm()
+        cfrm, self.catToggles, self.catSelects = SubFrm.cats(parent=self.cnvs,
+                                                             setCbx=False)
+        cfrm.grid(column=0,
+                  row=2,
+                  sticky='nsew')
+        tfrm, self.tagToggles, self.tagSelects = SubFrm.tags(parent=self.cnvs,
+                                                             setCbx=False)
+        tfrm.grid(column=0,
+                  row=3,
+                  sticky='nsew')
         # fill info
         self.getNext()
-        return self.infoEnts['Title']
+        return self.titleEnt
 
-    def createHeader(self):
+    def createHeader(self) -> None:
         pathFrm = LFrame(self.cnvs,
                          font=FONT_MD,
-                         text="Folder Name",
+                         text="Folder/Item",
                          padx=PAD)
-        pathFrm.grid(row=0,
-                     column=0,
+        pathFrm.grid(column=0,
+                     row=0,
                      sticky='ew')
         self.pathLbl = StringVar()
         lbl = Label(pathFrm,
                     font=FONT_LG,
                     textvariable=self.pathLbl)
-        lbl.grid(row=0,
-                 column=0,
+        lbl.grid(column=0,
+                 row=0,
                  sticky='nsew')
 
-    def createInfoFrm(self):
+    def createInfoFrm(self) -> None:
+        def addInfoItems(item: str, sz: U[int, list[int]]) -> Opt[U[Entry, Text]]:
+            def description() -> Text:
+                txt = Text(master=infoFrm,
+                           font=FONT_MD,
+                           width=sz[0],
+                           height=sz[1],
+                           wrap='word',
+                           padx=(PAD // 2),
+                           pady=(PAD // 2))
+                txt.grid(column=1,
+                         row=curRow,
+                         columnspan=2,
+                         sticky='w',
+                         pady=(0, PAD))
+                return txt
 
-        def browseFolders():
-            rawPaths = Askfiles(title="Select the game executable(s)",
-                                initialdir=os_path.join(PATH_GAMES, self.game))
-            if rawPaths:
-                relpaths = [os_path.relpath(p) for p in rawPaths]
-                paths = '; '.join(relpaths)
-                if self.infoEnts['Program Path'].get():
-                    paths = '; ' + paths
-                self.infoEnts['Program Path'].insert('end', paths)
-            self.deiconify()
+            def programFiles() -> None:
+                scrl = SFrame(master=infoFrm,
+                              scrollbars='e',
+                              padding=0,
+                              doupdate=False,
+                              scrollspeed=1,
+                              relief='sunken',
+                              bd=1,
+                              height=sz[0])
+                scrl.grid(column=1,
+                          columnspan=3,
+                          row=curRow,
+                          sticky='nsew')
+                self.createPathLines(*sz[1:],
+                                     parent=scrl,
+                                     firstRow=curRow)
+                scrl.redraw()
 
-        infoFrm = LFrame(self.cnvs,
+            def entries() -> Opt[Entry]:
+                var = StringVar()
+                ent = Entry(master=infoFrm,
+                            textvariable=var,
+                            width=sz)
+                ent.grid(column=1,
+                         row=curRow,
+                         sticky='w')
+                self.infoEnts[item] = var
+                if item == 'URL':
+                    # add url button
+                    urlBtn = Button(master=infoFrm,
+                                    text="Lookup/Open Webpage",
+                                    command=self.lookupOpenURL)
+                    urlBtn.grid(column=2,
+                                row=curRow)
+                elif item == 'Title':
+                    return ent
+
+            # add label
+            lbl = Label(master=infoFrm,
+                        text=item)
+            lbl.grid(column=0,
+                     row=curRow,
+                     pady=(2, 0),
+                     sticky='n')
+            # add entries
+            if item == 'Description':
+                wgt = description()
+            elif item == 'Program Path':
+                wgt = programFiles()
+            else:
+                wgt = entries()
+            return wgt
+
+        # create main frame
+        infoFrm = LFrame(master=self.cnvs,
                          font=FONT_MD,
                          text="Info",
                          padx=PAD)
-        infoFrm.grid(row=1,
-                     column=0,
+        infoFrm.grid(column=0,
+                     row=1,
                      sticky='nsew')
-        infoFrm.columnconfigure(2, weight=1)
-        for r, i in enumerate(INFO_ENT):
-            Label(infoFrm, text=i).grid(row=r, column=0)
-        f95btn = Button(infoFrm,
-                        text='f95zone lookup',
-                        command=self.getF95Info)
-        f95btn.grid(row=INFO_ENT.index('URL'),
-                    column=2)
-        urlBtn = Button(infoFrm,
-                        text='Open URL',
-                        command=lambda: os_startfile(self.infoEnts['URL'].get()))
-        urlBtn.grid(row=INFO_ENT.index('URL'),
-                    column=3)
-        browseBtn = Button(infoFrm,
-                           text="Browse",
-                           command=browseFolders)
-        browseBtn.grid(row=len(INFO_ENT),
-                       column=1,
-                       sticky='e')
-        # add entries
-        self.infoEnts = {i: Entry(infoFrm, width=85) for i in INFO_ENT}
-        for r, (i, e) in enumerate(self.infoEnts.items()):
-            e.grid(row=r, column=1)
-        # add textbox for description
-        l1 = Label(infoFrm,
-                   text="Description")
-        l1.grid(row=len(INFO_ENT)+1,
-                column=0,
-                sticky='w')
-        self.infoDesc = Text(infoFrm,
-                             font=FONT_MD,
-                             height=5,
-                             width=75,
-                             wrap='word',
-                             padx=3,
-                             pady=3)
-        self.infoDesc.grid(row=len(INFO_ENT)+1,
-                           column=1,
-                           columnspan=2,
-                           sticky='w')
+        infoFrm.columnconfigure(3, weight=1)
+        # init vars
+        self.infoEnts: dict[str, StringVar] = dict()
+        self.progPaths: oDict[
+            Frame, dict[str, U[bool, Entry, Button]]] = oDict()
+        curRow = int()
+        # build info prompts
+        for item, size in INFO_ENT.items():
+            widget = addInfoItems(item, size)
+            if widget:
+                if isinstance(widget, Entry):
+                    self.titleEnt = widget
+                elif isinstance(widget, Text):
+                    self.infoDesc = widget
+            curRow += 1
 
-    def createCatFrm(self):
-        self.catToggles = {i: IntVar() for i in CAT_TOG}
-        self.catLists = dict()
-        createSubFrm(self.cnvs,
-                     "Categories",
-                     2,
-                     self.catToggles,
-                     self.catLists,
-                     CAT_LST,
-                     MAX_CAT_COL)
+    @staticmethod
+    def clearPathEnt(widget: Entry, defTxt: str) -> None:
+        widget.select_clear()
+        widget.delete(0, 'end')
+        widget.insert(0, defTxt)
+        widget.configure(style='Path.TEntry')
 
-    def createTagFrm(self):
-        self.tagToggles = {i: IntVar() for i in TAG_TOG}
-        self.tagLists = dict()
-        createSubFrm(self.cnvs,
-                     "Tags",
-                     3,
-                     self.tagToggles,
-                     self.tagLists,
-                     TAG_LST,
-                     MAX_TAG_COL)
+    def createPathLines(self, nWd: int, pWd: int, parent: SFrame, firstRow: int) -> None:
+        def updateNameEnt(*args) -> bool:
+            return updateEnt("Preferred name", *args)
 
-    def getNext(self):
+        def updatePathEnt(*args) -> bool:
+            return updateEnt("Path to executable", *args)
+
+        def updateEnt(defTxt: str, name: str, why: str, newTxt: str) -> bool:
+            widget: Entry = self.nametowidget(name)
+            if why == 'key':
+                if newTxt:
+                    widget.configure(style='TEntry')
+            elif why == 'focusin':
+                if newTxt == defTxt:
+                    widget.select_range(0, 'end')
+            elif not newTxt or newTxt == defTxt:
+                self.clearPathEnt(widget, defTxt)
+            return True
+
+        def addLine() -> None:
+            topNameEnt.grid()
+            for frame, info in self.progPaths.items():
+                if info['show']:
+                    continue
+                else:
+                    frame.grid()
+                    self.progPaths[frame]['show'] = True
+                    break
+            parent.redraw()
+
+        def removeLine(frame: Frame) -> None:
+            frame.grid_remove()
+            self.progPaths[frame]['show'] = False
+            d = self.progPaths[frame]
+            self.clearPathEnt(d['name'], "Preferred name")
+            self.clearPathEnt(d['path'], "Path to executable")
+            active = [i for i in self.progPaths.values() if i['show']]
+            if len(active) == 1:
+                topNameEnt.grid_remove()
+            parent.redraw()
+
+        pathEntVal = parent.register(updatePathEnt)
+        nameEntVal = parent.register(updateNameEnt)
+        curRow = firstRow
+        for i in range(50):
+            # create holding frame
+            frm = Frame(parent)
+            frm.columnconfigure(1, weight=1)
+            frm.grid(column=0,
+                     row=curRow,
+                     columnspan=2,
+                     sticky='w')
+            # create 'name' entry
+            nameEnt = Entry(master=frm,
+                            style='Path.TEntry',
+                            validate='all',
+                            validatecommand=(nameEntVal, '%W', '%V', '%P'),
+                            width=nWd)
+            nameEnt.grid(column=0,
+                         row=0)
+            nameEnt.insert(0, "Preferred name")
+            # create 'path' entry
+            pathEnt = Entry(master=frm,
+                            style='Path.TEntry',
+                            validate='all',
+                            validatecommand=(pathEntVal, '%W', '%V', '%P'),
+                            width=pWd)
+            pathEnt.grid(column=1,
+                         row=0)
+            pathEnt.insert(0, "Path to executable")
+            if i == 0:
+                topNameEnt = nameEnt
+                # create 'add' button
+                btn = Button(master=frm,
+                             text="Add Another Executable",
+                             command=addLine)
+                nameEnt.grid_remove()
+            else:
+                # create 'remove' button
+                btn = Button(master=frm,
+                             text="Remove",
+                             command=(lambda f=frm: removeLine(f)))
+                frm.grid_remove()
+            btn.grid(column=2,
+                     row=0)
+            # add to dict
+            self.progPaths[frm] = {'show': i == 0,
+                                   'name': nameEnt,
+                                   'path': pathEnt,
+                                   'button': btn}
+            curRow += 1
+        browseBtn = Button(master=parent,
+                           text="Browse for Executable...",
+                           command=self.browseFolders)
+        browseBtn.grid(column=1,
+                       row=curRow,
+                       sticky='w')
+
+    def getNext(self) -> None:
         if self.allGames:
             self.clearData()
-            self.doF95Lookup = False
-            self.game = self.allGames.pop()
-            self.gamePath = os_path.join(PATH_GAMES, self.game)
-            self.fillData()
+            if isinstance(self.allGames, dict):
+                out = self.allGames.popitem()
+                self.game = str(out[0])
+                self.fillData(out[1])
+            else:
+                self.game: str = self.allGames.pop()
+                if self.adding and self.newGameCt > 1:
+                    ct = (self.newGameCt - len(self.allGames))
+                    self.title(self.wintitle.format(ct))
+                self.fillData()
         else:
             self.destroy()
 
-    def clearData(self):
+    def clearData(self) -> None:
         self.pathLbl.set('')
         # clear info
-        for _, ent in self.infoEnts.items():
-            ent.delete(0, 'end')
+        for ent in self.infoEnts.values():
+            ent.set('')
+        for i, info in enumerate(self.progPaths.values()):
+            if i:
+                info['button'].invoke()
+            else:
+                self.clearPathEnt(info['name'], "Preferred name")
+                self.clearPathEnt(info['path'], "Path to executable")
         self.infoDesc.delete(1.0, 'end')
         # clear togs
-        for _, tog in {**self.catToggles, **self.tagToggles}.items():
+        for tog in (self.catToggles | self.tagToggles).values():
             tog.set(0)
         # clear lists
-        for _, cbx in {**self.catLists, **self.tagLists}.items():
+        for cbx in (self.catSelects | self.tagSelects).values():
             cbx.set('')
 
-    def fillData(self):
+    def fillData(self, data: Opt[GAMEDATA_TYPE] = None) -> None:
         self.pathLbl.set(self.game)
-        self.fillInfoData()
-        if self.doF95Lookup:
-            self.getF95Info()
-        if self.game in self.gameClass.masterList:
-            self.insertInfo()
+        self.gamePath: str = os_path.join(PATH_GAMES, self.game)
+        if data:
+            exePaths = self.searchForExe(insert=False)
+            data['Info'].update({'Version': '',
+                                 'Program Path': exePaths})
+            self.insertMasterlistData(data)
+        elif self.game in self.gamelib.masterlist:
+            self.insertMasterlistData(None)
+        else:
+            self.initializeInfo()
 
-    def fillInfoData(self):
+    def searchForExe(self, insert: bool = True) -> U[str, list]:
+        def searchThis(item: str) -> str:
+            if os_path.splitext(item)[1] in FILETYPES:
+                return os_path.relpath(item)
+            elif os_path.isfile(item):
+                return str()
+            # else
+            for extension in FILETYPES:
+                for f in os_listdir(item):
+                    if os_path.splitext(f)[-1].lower() == extension:
+                        return os_path.relpath(os_path.join(item, f))
+            return str()
 
-        def defaultData(g):
-            n = re_sub(r'([a-z])([A-Z])',
-                       r'\1 \2',
-                       g.replace("_", " "))
-            return {'name': n, 'url': ''}
+        exePaths = searchThis(self.gamePath)
+        if exePaths:
+            if insert:
+                self.insertProgPaths(exePaths)
+        else:
+            fols = os_listdir(self.gamePath)
+            folPaths = [os_path.join(self.gamePath, sub) for sub in fols]
+            exePaths = [f for f in [searchThis(fol) for fol in folPaths] if f]
+            if not exePaths:
+                if Mbox.askyesno(title="Missing Executable",
+                                 message=(f"Couldn't find executable(s) for '{self.game}.'\n"
+                                          f"Would you like to open the search?"),
+                                 parent=self):
+                    self.browseFolders()
+            elif insert:
+                self.insertProgPaths(exePaths)
+        return exePaths
 
-        def searchForExe(searchThis):
-            if os_path.splitext(searchThis)[1] in FILETYPES:
-                return os_path.relpath(searchThis)
-            elif os_path.isfile(searchThis):
-                return ''
+    def insertProgPaths(self, exePaths: U[str, list[str], dict[str, str]]) -> None:
+        # get all blank frames and the last shown frame
+        blankFrms: list[Frame] = list()
+        for frm, dct in self.progPaths.items():
+            if dct['show']:
+                lastShown = frm
             else:
-                ex = ''
-                fs = os_listdir(searchThis)
-                for ext in FILETYPES:
-                    for f in fs:
-                        if os_path.splitext(f)[1].lower() == ext:
-                            ex = os_path.relpath(os_path.join(searchThis, f))
-                            break
-                    if ex:
-                        break
-                return ex
-
-        if self.game not in self.gameClass.masterList:
-            # set title and url from either 'New Games' or default
-            try:
-                data = self.gameClass.newList.pop(self.game)
-                self.gameClass.saveNew()
-            except Exception:
-                data = defaultData(self.game)
-            if 'f95zone' in data['url']:
-                self.doF95Lookup = True
-            self.infoEnts['Title'].insert(0, data['name'])
-            self.infoEnts['URL'].insert(0, data['url'])
-            # try to find exe
-            exePath = searchForExe(self.gamePath)
-            if exePath:
-                self.infoEnts['Program Path'].insert(0, exePath)
+                blankFrms.append(frm)
+        frm: Frame = lastShown
+        if isinstance(exePaths, str):
+            self.progPaths[frm]['path'].delete(0, 'end')
+            self.progPaths[frm]['path'].insert(0, exePaths)
+        else:
+            addBtn = self.progPaths[next(iter(self.progPaths))]['button']
+            iterFrms = iter(blankFrms)
+            if isinstance(exePaths, list):
+                for i, path in enumerate(exePaths):
+                    if i:
+                        addBtn.invoke()
+                        frm = next(iterFrms)
+                    self.progPaths[frm]['path'].delete(0, 'end')
+                    self.progPaths[frm]['path'].insert(0, path)
             else:
-                fs = os_listdir(self.gamePath)
-                folPaths = {os_path.join(self.gamePath, sub) for sub in fs}
-                exePaths = {searchForExe(fol) for fol in folPaths} - {''}
-                if exePaths:
-                    exePaths = '; '.join(exePaths)
-                    self.infoEnts['Program Path'].insert(0, exePaths)
-                else:
-                    Mbox.showinfo("Missing Executable",
-                                  "Couldn't find executable(s) for '%s'. Please add them manually, separated by a semicolon" % self.game,
-                                  parent=self)
+                for i, (name, path) in enumerate(exePaths.items()):
+                    if i:
+                        addBtn.invoke()
+                        frm = next(iterFrms)
+                    self.progPaths[frm]['name'].delete(0, 'end')
+                    self.progPaths[frm]['name'].insert(0, name)
+                    self.progPaths[frm]['path'].delete(0, 'end')
+                    self.progPaths[frm]['path'].insert(0, path)
 
-    def getF95Info(self):
-        def formatData(data):
-            string = ''.join(data)
+    def initializeInfo(self) -> None:
+        # set title and url
+        data = self.gamelib.newList.get(self.game)
+        if data:
+            self.infoEnts['Title'].set(data['name'])
+            self.infoEnts['URL'].set(data['url'])
+            self.searchForExe()
+            self.lookupOpenURL(open=True)
+        else:
+            raw = os_path.splitext(self.game)[0]
+            spaced = re_sub(pattern=r'([a-z])([A-Z])(?=\w)',
+                            repl=r'\1 \2',
+                            string=raw.replace("_", " "))
+            capped = re_sub(pattern=r'(?:^|(?<= ))([a-z])(?=\w{3})',
+                            repl=lambda m: m.group(1).upper(),
+                            string=spaced)
+            name = re_sub(pattern=(r'(?i)(\W*('
+                                   r'pc|win|eng|english|v|ver|ch|ep|final'
+                                   r'|(\d|\.\d)[\d\.]*.{0,2}[\d\.]*|[([{].+?[)}\]])\W*)+$'),
+                          repl='',
+                          string=capped)
+            self.infoEnts['Title'].set(name)
+            self.searchForExe()
+
+    def lookupOpenURL(self, open: bool = False) -> None:
+        url = self.infoEnts['URL'].get()
+        if open or 'f95zone' not in url:
+            if url:
+                try:
+                    os_startfile(url)
+                except Exception:
+                    Mbox.showerror("Error", "Invalid URL")
+            else:
+                Mbox.showerror("Error", "No URL specified")
+        if 'f95zone' in url and not self.infoEnts['Version'].get():
+            self.getF95Info(url)
+
+    def getF95Info(self, url: str) -> None:
+        def req_url():
+            raw = pool.request('GET', url).data
+            return raw.decode('utf-8', errors='ignore')
+
+        def formatStr(s: str) -> str:
+            string = re_sub(r'\s*(\r+|\n+)\s*',
+                            r'\n',
+                            ''.join(s))
             encoded = string.encode('ascii', 'ignore')
             return encoded.decode().strip()
-        # set url and check it
-        url = self.infoEnts['URL'].get()
-        if not url:
-            Mbox.showerror("Error", "No URL specified")
-            return
-        elif 'f95zone' not in url:
-            Mbox.showerror("Error", "Only f95zone urls supported")
-            return
 
-        # set data paths
-        xpath_title = '//div[@uix_component="MainContent"]//h1[@class="p-title-value"]//child::text()'
-        xpath_tags = '//li[@class="groupedTags"]/a//child::text()'
-        xpath_desc = '//article[@class="message-body js-selectToQuote"]/div[@class="bbWrapper"]/div[count(b)>0]'
-        xpath_ver = '//article[@class="message-body js-selectToQuote"]//b[contains(translate(text(), "VERSION", "version"), "version")]/following-sibling::text()[1]'
-        # retrieve data
-        page = Html.fromstring(req_url().get(url).content)
-
-        # get catagory info
-        rawHeader = formatData(page.xpath(xpath_title)).lower()
-        rawCatInfo = re_findall(r'(?<=\[).+?(?=\])',
-                                rawHeader)
-        if rawHeader and rawCatInfo:
-            if 'completed' in rawCatInfo:
-                self.catToggles['Completed'].set(1)
-            [self.catLists['Format'].set(
-                c) for c in CAT_LST['Format'] if c.lower() in rawCatInfo]
-
-        # get tag info
-        rawTags = set(page.xpath(xpath_tags))
-        rep = {v for k, v in {**TAG_EQU, **CAT_EQU}.items() if k in rawTags}
-        allTags = rawTags - set(TAG_EQU) - set(CAT_EQU) | rep
-        if allTags:
-            # set toggle tags
-            tagTogs = [t for t in TAG_TOG if t.lower() in allTags]
-            [self.tagToggles[t].set(1) for t in tagTogs]
-            # set toggle categories
-            catTogs = [t for t in CAT_TOG if t.lower() in allTags]
-            [self.catToggles[t].set(1) for t in catTogs]
-            # set art category
-            art = [t for t in CAT_LST['Art'] if t.lower() in allTags]
-            [self.catLists['Art'].set(c) for c in art]
-            # get protagonist info
-            protag = 'Unknown'
-            rawProtag = set()
-            for t in allTags:
-                if 'protagonist' in t:
-                    rawProtag |= {t.split(' ')[0]}
+        def getProtagonist() -> str:
+            rawProtag = {t.split(' ')[0] for t in allTags
+                         if 'protagonist' in t}
             protagCt = len(rawProtag)
-            if protagCt <= 1:
-                for p in TAG_LST['Protagonist']:
-                    if p.lower() in rawProtag:
-                        protag = p
-                        break
+            if protagCt == 0:
+                return 'Unknown'
+            elif protagCt == 1:
+                for protag in TAG_SEL['Protagonist']:
+                    if protag.lower() in rawProtag:
+                        return protag
+                return 'Unknown'
             elif rawProtag in [{'male', 'female'}, {'male', 'female', 'multiple'}]:
-                protag = 'Male/Female'
+                return 'Male/Female'
             elif 'multiple' in rawProtag or protagCt > 1:
-                protag = 'Multiple'
-            self.tagLists['Protagonist'].set(protag)
+                return 'Multiple'
+            else:
+                return 'Unknown'
+
+        # retrieve data
+        pool = PoolManager()
+        page = Html(req_url(), 'html.parser')
+
+        # get catagory data
+        rawTitle = page.select(Sel.title)
+        if rawTitle:
+            rawTitle = rawTitle[0].get_text().lower()
+            rawCatInfo = re_findall(r'(?<=\[).+?(?=\])',
+                                    formatStr(rawTitle))
+            if rawCatInfo:
+                if 'completed' in rawCatInfo:
+                    self.catToggles['Completed'].set(1)
+                for c in CAT_SEL['Format']:
+                    if c.lower() in rawCatInfo:
+                        self.catSelects['Format'].set(c)
+        # get tag data
+        rawTags = {t.get_text() for t in page.select(Sel.tags)}
+        if rawTags:
+            subbedTags = {v for k, v in (TAG_EQU | CAT_EQU).items()
+                          if k in rawTags}
+            allTags = rawTags - {*TAG_EQU, *CAT_EQU} | subbedTags
+            if allTags:
+                # set toggle tags
+                for tag in [t for t in TAG_TOG if t.lower() in allTags]:
+                    self.tagToggles[tag].set(1)
+                # set toggle categories
+                for tag in [t for t in CAT_TOG if t.lower() in allTags]:
+                    self.catToggles[tag].set(1)
+                # set art category
+                for art in [t for t in CAT_SEL['Art'] if t.lower() in allTags]:
+                    self.catSelects['Art'].set(art)
+                # set protagonist
+                if 'character creation' in allTags:
+                    protag = 'Created'
+                else:
+                    protag = getProtagonist()
+                self.tagSelects['Protagonist'].set(protag)
         # get description
-        rawDesc = formatData(page.xpath(xpath_desc)[0].text_content())
-        desc = re_sub(r'\s*(\r+|\n+)\s*',
-                      r'\n',
-                      rawDesc)
-        frmtDesc = re_sub(r'(?s)Overview:|Spoiler:.+$',
+        rawContent = page.select(Sel.desc)
+        if rawContent:
+            rawDesc = rawContent[0].find_parent().get_text()
+            desc = re_sub(r'(?s)\s*(Overview:?|Spoiler.+?register now\.)\s*',
                           r'',
-                          desc).strip()
-        self.infoDesc.insert(1.0, frmtDesc)
+                          formatStr(rawDesc))
+            self.infoDesc.insert(1.0, desc.strip())
         # get version
-        v = page.xpath(xpath_ver)
-        v = v[0].strip(' :') if v else ''
-        self.infoEnts['Version'].insert('end', v)
+        rawVer: list[str] = [el.next_sibling for el in page.select(Sel.ver)
+                             if 'version' in el.get_text().lower()]
+        if rawVer:
+            ver = rawVer[0].strip(' :')
+            self.infoEnts['Version'].set(ver)
         os_system('nircmd stdbeep')
 
-    def insertInfo(self):
-        data = self.gameClass.masterList[self.game]
+    def insertMasterlistData(self, data: Opt[GAMEDATA_TYPE] = None) -> None:
+        if not data:
+            data = self.gamelib.masterlist[self.game]
+        cattag = dict[str, U["IntVar", "Combobox"]]
         # insert info
         for lbl, cb in self.infoEnts.items():
-            cb.insert(0, data['Info'][lbl])
+            cb.set(data['Info'][lbl])
+        progPaths = data['Info']['Program Path']
+        self.insertProgPaths(progPaths)
         self.infoDesc.insert(1.0, data['Info']['Description'])
         # insert categories
-        for lbl, cb in {**self.catToggles, **self.catLists}.items():
+        cats: cattag = (self.catToggles | self.catSelects)
+        for lbl, cb in cats.items():
             cb.set(data['Categories'][lbl])
         # insert tags
-        for lbl, cb in {**self.tagToggles, **self.tagLists}.items():
+        tags: cattag = (self.tagToggles | self.tagSelects)
+        for lbl, cb in tags.items():
             cb.set(data['Tags'][lbl])
 
-    def submit(self):
-        inf_ents = {k: v.get().strip() for k, v in self.infoEnts.items()}
+    def browseFolders(self) -> None:
+        rawPaths: list = Askfiles(title="Select the game executable(s)",
+                                  initialdir=self.gamePath)
+        if rawPaths:
+            relpaths = [os_path.relpath(p) for p in rawPaths]
+            self.insertProgPaths(relpaths)
+        self.deiconify()
+
+    def submit(self) -> None:
+        pPthDct: dict[str, str] = dict()
+        isDct = False
+        for d in self.progPaths.values():
+            if d['show']:
+                pth = d['path'].get().strip()
+                if pth != "Path to executable":
+                    nm = d['name'].get().strip()
+                    if nm != "Preferred name":
+                        isDct = True
+                    else:
+                        nm = pth
+                    pPthDct[nm] = pth
+        if len(pPthDct) == 1:
+            pPths = pPthDct.popitem()[0]
+            gamePath = pPths
+        elif isDct:
+            pPths = pPthDct
+            gamePath = pPths[next(iter(pPths))]
+        else:
+            pPths = list(pPthDct)
+            gamePath = pPths[0]
+
+        inf_ents = {k: v.get() for k, v in self.infoEnts.items()}
+        inf_pths = {'Program Path': pPths}
         inf_dscs = {'Description': self.infoDesc.get(1.0, 'end-1c').strip()}
         cat_togs = {k: v.get() for k, v in self.catToggles.items()}
-        cat_lsts = {k: v.get().strip() for k, v in self.catLists.items()}
+        cat_lsts = {k: v.get() for k, v in self.catSelects.items()}
         tag_togs = {k: v.get() for k, v in self.tagToggles.items()}
-        tag_lsts = {k: v.get().strip() for k, v in self.tagLists.items()}
-        self.gameClass.masterList.update(
-            {self.game: {
-                'Info': {**inf_ents, **inf_dscs},
-                'Categories': {**cat_togs, **cat_lsts},
-                'Tags': {**tag_togs, **tag_lsts}
-            }})
-        self.gameClass.save()
-        self.updateGames = True
+        tag_lsts = {k: v.get() for k, v in self.tagSelects.items()}
+        # update 'new list' if necessary
+        if self.gamelib.newList.pop(self.game, None):
+            self.gamelib.saveNew()
+        # check if data is new
+        gamePath: str = gamePath.split('\\')[0]
+        newData = {'Info': (inf_ents | inf_pths | inf_dscs),
+                   'Categories': (cat_togs | cat_lsts),
+                   'Tags': (tag_togs | tag_lsts)}
+        if self.game != gamePath or newData != self.gamelib.masterlist.get(self.game):
+            # check if path has changed
+            if self.game != gamePath:
+                self.gamelib.masterlist.pop(self.game, None)
+                self.game = gamePath
+            # update master list
+            self.gamelib.masterlist[self.game] = newData
+            self.gamelib.save()
+            self.updateGames = True if self.adding else self.game
         self.getNext()
 
 
-def createSubFrm(parent, title, row, togDict, listDict, LST, MAX_COL, setCbx=False):
-    frm = LFrame(parent,
-                 font=FONT_MD,
-                 text=title,
-                 padx=PAD)
-    frm.grid(row=row,
-             column=0,
-             sticky='nsew')
-    for n in range(MAX_COL):
-        frm.columnconfigure(n, minsize=GRID_MIN_SIZE)
-    curRow = curCol = 0
-    # add checkbuttons
-    for c, v in togDict.items():
-        chk = Checkbutton(frm,
-                          text=c,
-                          variable=v)
-        chk.grid(row=curRow,
-                 column=curCol,
-                 padx=PAD/2,
-                 sticky='w')
-        if curCol == MAX_COL:
-            curRow += 1
-            curCol = 0
-        else:
-            curCol += 1
-    # add comboboxes
-    for c, v in LST.items():
-        lf = LFrame(frm,
-                    font=FONT_SM,
-                    text=c)
-        lf.grid(row=curRow,
-                column=curCol,
-                padx=PAD/2)
-        cbx = Combobox(lf,
-                       values=(['Any', *v] if setCbx else v),
-                       width=13)
-        cbx.grid(sticky='w')
-        if setCbx:
-            cbx.current(0)
-        listDict.update({c: cbx})
-        if curCol == MAX_COL:
-            curRow += 1
-            curCol = 0
-        else:
-            curCol += 1
-
-
-def EditGames(parent, gameClass, allGames, showSkip=False):
-    res = _EditGamesDialog(parent, gameClass, allGames, showSkip)
+def EditGames(parent: U[Tk, LFrame, Canvas], gamelib: "GameLib", allGames: U[dict, list], adding: bool = False) -> U[bool, str]:
+    res = _EditGamesDialog(parent, gamelib, allGames, adding)
     return res.updateGames

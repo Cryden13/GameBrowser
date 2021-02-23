@@ -1,108 +1,144 @@
-from tkinter.filedialog import askopenfilenames as Askfiles
+from json import load as json_load, dump as json_dump
+from tkinter.filedialog import askdirectory as Askdir
 from os import path as os_path, listdir as os_listdir
-import json
+from re import match as re_match
+from tkinter import Tk
 
 from editlist import EditGames
 from constants import *
 
 
 class GameLib:
-    def __init__(self, root):
+    def __init__(self, root: Tk):
         self.root = root
         with open(PATH_LIST, 'r') as f:
-            self.masterList = json.load(f)
-        self.checkForMissingGames()
+            self.masterlist: oDict[str, GAMEDATA_TYPE] = oDict(json_load(f))
         with open(PATH_RECENT, 'r') as f:
-            self.recentList = json.load(f)
+            self.recentList: list[str] = json_load(f)
         with open(PATH_NEW, 'r') as f:
-            self.newList = json.load(f)
+            self.newList: dict[str, dict[str, str]] = json_load(f)
+        self.checkForMissingGames()
+        self.insertNewTags()
 
-    def checkForMissingGames(self):
-        missingGames = [g for g in self.masterList if g not in os_listdir()]
-        ttl = "Missing Reference ({} of %d)" % len(missingGames)
-        msg = "'{}' could not be found.\nPress <abort> to delete this item, <retry> to search for this item's executable(s), or <ignore> to skip this check"
-        searchTtl = "Select the executable(s) for '{}'"
-        doUpdate = False
+    def checkForMissingGames(self) -> None:
+        missingGames = [g for g in self.masterlist if g not in os_listdir()]
+        ct = len(missingGames)
+        notFound = ("could not be found.\n"
+                    "Press <abort> to delete this item, "
+                    "<retry> to search for this item, "
+                    "or <ignore> to skip this check.")
+        srchTtl = "Select the main folder/file for"
         for i, game in enumerate(missingGames):
-            ans = Mbox.askquestion(ttl.format(i+1),
-                                   msg.format(game),
+            ans = Mbox.askquestion(title=f"Missing Reference ({i+1} of {ct})",
+                                   message=f"'{game}' {notFound}",
                                    icon='warning',
                                    type='abortretryignore')
             if ans == 'abort':
-                self.masterList.pop(game)
-                doUpdate = True
+                self.masterlist.pop(game)
+                self.save()
             elif ans == 'retry':
-                exePaths = list()
-                addMore = True
-                while addMore:
-                    newPaths = Askfiles(title=searchTtl.format(game),
-                                        initialdir=PATH_GAMES)
-                    exePaths += [os_path.relpath(p) for p in newPaths]
-                    addMore = Mbox.askyesno("Add More?",
-                                            "Are there additional executable(s) to add?")
-                if exePaths:
-                    data = self.masterList.pop(game)
-                    paths = '; '.join(exePaths)
-                    data['Info']['Program Path'] = paths
-                    self.masterList.update({paths.split('\\')[0]: data})
-                    doUpdate = True
+                newPath: str = Askdir(title=f"{srchTtl} '{game}'",
+                                      initialdir=PATH_GAMES,
+                                      mustexist=True)
+                if newPath:
+                    data = self.masterlist.get(game)
+                    EditGames(parent=self.root,
+                              gamelib=self,
+                              allGames={os_path.relpath(newPath): data})
             else:
                 break
-        doUpdate = self.insertNewTags(doUpdate)
-        self.root.deiconify()
+
+    def insertNewTags(self) -> None:
+        doUpdate = False
+        for game, data in self.masterlist.items():
+            for n in set(INFO_ENT) - set(data['Info']):
+                self.masterlist[game]['Info'][n] = 0
+                doUpdate = True
+            for n in (set(CAT_TOG) | set(CAT_SEL)) - set(data['Categories']):
+                self.masterlist[game]['Categories'][n] = 0
+                doUpdate = True
+            for n in set(TAG_TOG) - set(data['Tags']):
+                self.masterlist[game]['Tags'][n] = 0
+                doUpdate = True
         if doUpdate:
             self.save()
 
-    def insertNewTags(self, update):
-        for game, data in self.masterList.items():
-            for n in set(INFO_ENT) - set(data['Info']):
-                self.masterList[game]['Info'][n] = 0
-                update = True
-            for n in (set(CAT_TOG) | set(CAT_LST)) - set(data['Categories']):
-                self.masterList[game]['Categories'][n] = 0
-                update = True
-            for n in set(TAG_TOG) - set(data['Tags']):
-                self.masterList[game]['Tags'][n] = 0
-                update = True
-        return update
+    def alphabetize(self) -> None:
+        # create dict where {game_title(lowercase): game_folder}
+        ttl2Fol = dict()
+        for fol, data in self.masterlist.items():
+            ttl2Fol[data['Info']['Title'].lower()] = fol
+        # create list of lowercase, alphabetized titles
+        alphaTtls = list(ttl2Fol)
+        alphaTtls.sort()
+        # create alphabetized list of folder names
+        alphaFols = [ttl2Fol[ttl] for ttl in alphaTtls]
+        # update the list
+        self.masterlist = oDict([(fol, self.masterlist[fol])
+                                 for fol in alphaFols])
 
-    def save(self):
-        self.alphabetize()
-        with open(PATH_LIST, 'w') as f:
-            json.dump(self.masterList, f, indent=4)
+    def splitByLetter(self) -> oDict[str, list[str]]:
+        # create ordered dict 'alpha' where {'game_title_first_letter': ['game_folders']}
+        gameByLetter: dict[str, list[str]] = dict()
+        for fol, data in self.masterlist.items():
+            # get the first letter of the game title
+            firstLetter = str(data['Info']['Title'][0])
+            if re_match(r'[^A-Za-z]', firstLetter):
+                firstLetter = str('#')
+            # check if another game has already started with that letter/create new list
+            lst = list(gameByLetter.pop(firstLetter, list()))
+            lst.append(fol)
+            gameByLetter[firstLetter] = lst
+        # alphabetize the ordered dict
+        alphaLst = list(gameByLetter)
+        alphaLst.sort()
+        alpha = oDict([(letter, gameByLetter[letter]) for letter in alphaLst])
+        # create ordered dict 'out' where {'letter_range': ['game_folders']}
+        out: oDict[str, list[str]] = oDict()
+        first = last = next(iter(alpha))
+        work = alpha.pop(first)
+        for letter, fols in alpha.items():
+            if len(work) + len(fols) > MAX_GAMES_PER_PAGE:
+                out[f'{first}-{last}'] = work
+                first = letter
+                work = fols
+            else:
+                work += fols
+            last = letter
+        out[f'{first}-{last}'] = work
+        return out
 
-    def alphabetize(self):
-        titles = dict()
-        for name, data in self.masterList.items():
-            titles.update({data['Info']['Title']: name})
-        alpha = list(titles)
-        alpha.sort()
-        names = [titles[title] for title in alpha]
-        self.masterList = {name: self.masterList[name] for name in names}
-
-    def checkForNewGames(self):
-        newGames = list()
+    def checkForNewGames(self) -> bool:
+        newGames: list[str] = list()
         for game in os_listdir():
             if game == os_path.basename(PATH_PROG):
                 continue
             if not os_path.isdir(game):
-                if os_path.splitext(game)[1] not in FILETYPES:
+                if os_path.splitext(game)[-1] not in FILETYPES:
                     continue
-            if game in self.masterList:
+            if game in self.masterlist:
                 continue
             newGames.append(game)
         if newGames:
             newGames.sort()
-            print(len(newGames), 'new games')
-            return EditGames(self.root, self, newGames, True)
+            return EditGames(parent=self.root,
+                             gamelib=self,
+                             allGames=newGames,
+                             adding=True)
         else:
-            Mbox.showinfo("Notice", "No new games were found!")
+            Mbox.showinfo(title="Notice",
+                          message="No new games were found!")
             return False
 
-    def saveRecent(self):
-        with open(PATH_RECENT, 'w') as f:
-            json.dump(self.recentList, f, indent=4)
+    def save(self) -> None:
+        self.alphabetize()
+        with open(PATH_LIST, 'w') as f:
+            json_dump(self.masterlist, f, indent=4)
 
-    def saveNew(self):
+    def saveRecent(self) -> None:
+        with open(PATH_RECENT, 'w') as f:
+            json_dump(self.recentList, f, indent=4)
+
+    def saveNew(self) -> None:
         with open(PATH_NEW, 'w') as f:
-            json.dump(self.newList, f, indent=4)
+            json_dump(self.newList, f, indent=4)
