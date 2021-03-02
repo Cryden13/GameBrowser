@@ -2,21 +2,30 @@ from json import load as json_load, dump as json_dump
 from tkinter.filedialog import askdirectory as Askdir
 from os import path as os_path, listdir as os_listdir
 from re import match as re_match
-from tkinter import Tk
 
 from editlist import EditGames
 from constants import *
 
+if TYPE_CHECKING:
+    from tkinter import Tk
+
+    from browse import GUI
+
 
 class GameLib:
-    def __init__(self, root: Tk):
+    root: "U[Tk, GUI]"
+    masterlist: oDict[str, GAMEDATA_TYPE]
+    recentList: dict[str, list[str]]
+    newList: dict[str, dict[str, str]]
+
+    def __init__(self, root: "U[Tk, GUI]"):
         self.root = root
         with open(PATH_LIST, 'r') as f:
-            self.masterlist: oDict[str, GAMEDATA_TYPE] = oDict(json_load(f))
+            self.masterlist = oDict(json_load(f))
         with open(PATH_RECENT, 'r') as f:
-            self.recentList: list[str] = json_load(f)
+            self.recentList = json_load(f)
         with open(PATH_NEW, 'r') as f:
-            self.newList: dict[str, dict[str, str]] = json_load(f)
+            self.newList = json_load(f)
         self.checkForMissingGames()
         self.insertNewTags()
 
@@ -65,14 +74,14 @@ class GameLib:
 
     def alphabetize(self) -> None:
         # create dict where {game_title(lowercase): game_folder}
-        ttl2Fol = dict()
+        ttl2Fol: dict(str, str) = dict()
         for fol, data in self.masterlist.items():
             ttl2Fol[data['Info']['Title'].lower()] = fol
         # create list of lowercase, alphabetized titles
-        alphaTtls = list(ttl2Fol)
+        alphaTtls: list[str] = list(ttl2Fol)
         alphaTtls.sort()
         # create alphabetized list of folder names
-        alphaFols = [ttl2Fol[ttl] for ttl in alphaTtls]
+        alphaFols: list[str] = [ttl2Fol[ttl] for ttl in alphaTtls]
         # update the list
         self.masterlist = oDict([(fol, self.masterlist[fol])
                                  for fol in alphaFols])
@@ -81,31 +90,45 @@ class GameLib:
         # create ordered dict 'alpha' where {'game_title_first_letter': ['game_folders']}
         gameByLetter: dict[str, list[str]] = dict()
         for fol, data in self.masterlist.items():
-            # get the first letter of the game title
-            firstLetter = str(data['Info']['Title'][0])
-            if re_match(r'[^A-Za-z]', firstLetter):
-                firstLetter = str('#')
-            # check if another game has already started with that letter/create new list
-            lst = list(gameByLetter.pop(firstLetter, list()))
+            # get the first letters of the game title
+            firstLetters = str(data['Info']['Title'][:2]).strip()
+            if re_match(r'[^A-Za-z]', firstLetters[0]):
+                firstLetters = str('#')
+            # check if another game has already started with those letters/create new list
+            lst = list(gameByLetter.pop(firstLetters, list()))
             lst.append(fol)
-            gameByLetter[firstLetter] = lst
+            gameByLetter[firstLetters] = lst
         # alphabetize the ordered dict
-        alphaLst = list(gameByLetter)
+        alphaDct: dict[str, str] = {l.lower(): l for l in gameByLetter}
+        alphaLst: list[str] = list(alphaDct)
         alphaLst.sort()
-        alpha = oDict([(letter, gameByLetter[letter]) for letter in alphaLst])
+        alpha: oDict[str, list[str]] = oDict()
+        for letter in alphaLst:
+            l = alphaDct[letter]
+            alpha[l] = gameByLetter[l]
         # create ordered dict 'out' where {'letter_range': ['game_folders']}
         out: oDict[str, list[str]] = oDict()
         first = last = next(iter(alpha))
-        work = alpha.pop(first)
+        folList = list()
         for letter, fols in alpha.items():
-            if len(work) + len(fols) > MAX_GAMES_PER_PAGE:
-                out[f'{first}-{last}'] = work
-                first = letter
-                work = fols
+            if len(folList) + len(fols) > MAX_GAMES_PER_PAGE:
+                if letter[0] != last[0]:
+                    last = last[0]
+                    if first == last:
+                        lbl = first
+                    else:
+                        lbl = f'{first}-{last}'
+                    first = letter[0]
+                else:
+                    lbl = first if first == last else f'{first}-{last}'
+                    first = letter
+                out[lbl] = folList
+                folList = fols
             else:
-                work += fols
+                folList += fols
             last = letter
-        out[f'{first}-{last}'] = work
+        lbl = first if first == last[0] else f'{first}-{last[0]}'
+        out[lbl] = folList
         return out
 
     def checkForNewGames(self) -> bool:

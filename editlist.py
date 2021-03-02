@@ -1,27 +1,44 @@
 from tkinter import Tk, Canvas, Frame, StringVar, Text, LabelFrame as LFrame
 from tkinter.filedialog import askopenfilenames as Askfiles
-from tkinter.ttk import Label, Entry, Button, Style
+from tkinter.ttk import Label, Entry, Button
 from tkinter.simpledialog import Dialog
 
-from os import startfile as os_startfile, listdir as os_listdir, system as os_system
-from re import sub as re_sub, findall as re_findall
-from bs4 import BeautifulSoup as Html
-from urllib3 import PoolManager
-from changecolor import invert
+from os import startfile as os_startfile, listdir as os_listdir
+from subprocess import run as openatfile
+from re import sub as re_sub
 
-from constants import _createSubFrm as SubFrm, _SELECTOR as Sel
+from builders import SubFrm, GetF95Info, ProgramPathInput, clearPathInput
 from constants import *
-from scrolledframe import ScrolledFrame as SFrame
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from gamelibrary import GameLib
     from tkinter import IntVar
     from tkinter.ttk import Combobox
 
+    from gamelibrary import GameLib
+
 
 class _EditGamesDialog(Dialog):
-    def __init__(self, parent: U[Tk, LFrame, Canvas], gamelib: "GameLib", allGames: U[dict, list], adding: bool):
+    parent: U[Tk, LFrame, Canvas]
+    gamelib: "GameLib"
+    allGames: U[dict, list]
+    adding: bool
+    updateGames: bool
+    newGameCt: int
+    wintitle: str
+    cnvs: Canvas
+    catToggles: "dict[str, IntVar]"
+    catSelects: "dict[str, Combobox]"
+    tagToggles: "dict[str, IntVar]"
+    tagSelects: "dict[str, Combobox]"
+    pathLbl: StringVar
+    infoEnts: dict[str, StringVar]
+    progPaths: oDict[Frame, dict[str, U[bool, Entry, Button]]]
+    titleEnt: Entry
+    infoDesc: Text
+    game: str
+    gamePath: str
+
+    def __init__(self, parent, gamelib, allGames, adding):
         self.parent = parent
         self.gamelib = gamelib
         self.allGames = allGames
@@ -75,11 +92,6 @@ class _EditGamesDialog(Dialog):
         # initialize window
         self.geometry(self.parent.geometry())
         self.geometry(f'{EDIT_WD}x{EDIT_HT}')
-        invertTextCol = str(invert(color=self.winfo_rgb('SystemButtonText'),
-                                   inputtype='RGB',
-                                   bitdepth=16))
-        Style().configure('Path.TEntry',
-                          foreground=invertTextCol)
         # create container
         self.cnvs = Canvas(self)
         self.cnvs.pack(expand=True,
@@ -106,27 +118,33 @@ class _EditGamesDialog(Dialog):
 
     def createHeader(self) -> None:
         pathFrm = LFrame(self.cnvs,
-                         font=FONT_MD,
                          text="Folder/Item",
                          padx=PAD)
         pathFrm.grid(column=0,
                      row=0,
                      sticky='ew')
+        pathFrm.columnconfigure(0, weight=1)
+        # label
         self.pathLbl = StringVar()
         lbl = Label(pathFrm,
                     font=FONT_LG,
                     textvariable=self.pathLbl)
         lbl.grid(column=0,
                  row=0,
-                 sticky='nsew')
+                 sticky='w')
+        pathBtn = Button(master=pathFrm,
+                         text="Open",
+                         command=(lambda: openatfile(
+                                  ['explorer.exe', '/select,', self.gamePath])))
+        pathBtn.grid(column=1,
+                     row=0)
 
     def createInfoFrm(self) -> None:
-        def addInfoItems(item: str, sz: U[int, list[int]]) -> Opt[U[Entry, Text]]:
+        def addInfoItems(item: str, sz: U[int, list[int]]) -> O[U[Entry, Text]]:
             def description() -> Text:
                 txt = Text(master=infoFrm,
-                           font=FONT_MD,
-                           width=sz[0],
-                           height=sz[1],
+                           width=sz,
+                           height=5,
                            wrap='word',
                            padx=(PAD // 2),
                            pady=(PAD // 2))
@@ -138,24 +156,19 @@ class _EditGamesDialog(Dialog):
                 return txt
 
             def programFiles() -> None:
-                scrl = SFrame(master=infoFrm,
-                              scrollbars='e',
-                              padding=0,
-                              doupdate=False,
-                              scrollspeed=1,
-                              relief='sunken',
-                              bd=1,
-                              height=sz[0])
-                scrl.grid(column=1,
-                          columnspan=3,
-                          row=curRow,
-                          sticky='nsew')
-                self.createPathLines(*sz[1:],
-                                     parent=scrl,
-                                     firstRow=curRow)
+                scrl = ProgramPathInput(*sz,
+                                        parent=infoFrm,
+                                        startRow=curRow,
+                                        progPaths=self.progPaths)
+                browseBtn = Button(master=scrl,
+                                   text="Browse for Executable...",
+                                   command=self.browseFolders)
+                browseBtn.grid(column=1,
+                               row=PROGFILE_INPUT_ROWS,
+                               sticky='w')
                 scrl.redraw()
 
-            def entries() -> Opt[Entry]:
+            def entries() -> O[Entry]:
                 var = StringVar()
                 ent = Entry(master=infoFrm,
                             textvariable=var,
@@ -192,7 +205,6 @@ class _EditGamesDialog(Dialog):
 
         # create main frame
         infoFrm = LFrame(master=self.cnvs,
-                         font=FONT_MD,
                          text="Info",
                          padx=PAD)
         infoFrm.grid(column=0,
@@ -200,9 +212,8 @@ class _EditGamesDialog(Dialog):
                      sticky='nsew')
         infoFrm.columnconfigure(3, weight=1)
         # init vars
-        self.infoEnts: dict[str, StringVar] = dict()
-        self.progPaths: oDict[
-            Frame, dict[str, U[bool, Entry, Button]]] = oDict()
+        self.infoEnts = dict()
+        self.progPaths = oDict()
         curRow = int()
         # build info prompts
         for item, size in INFO_ENT.items():
@@ -214,120 +225,15 @@ class _EditGamesDialog(Dialog):
                     self.infoDesc = widget
             curRow += 1
 
-    @staticmethod
-    def clearPathEnt(widget: Entry, defTxt: str) -> None:
-        widget.select_clear()
-        widget.delete(0, 'end')
-        widget.insert(0, defTxt)
-        widget.configure(style='Path.TEntry')
-
-    def createPathLines(self, nWd: int, pWd: int, parent: SFrame, firstRow: int) -> None:
-        def updateNameEnt(*args) -> bool:
-            return updateEnt("Preferred name", *args)
-
-        def updatePathEnt(*args) -> bool:
-            return updateEnt("Path to executable", *args)
-
-        def updateEnt(defTxt: str, name: str, why: str, newTxt: str) -> bool:
-            widget: Entry = self.nametowidget(name)
-            if why == 'key':
-                if newTxt:
-                    widget.configure(style='TEntry')
-            elif why == 'focusin':
-                if newTxt == defTxt:
-                    widget.select_range(0, 'end')
-            elif not newTxt or newTxt == defTxt:
-                self.clearPathEnt(widget, defTxt)
-            return True
-
-        def addLine() -> None:
-            topNameEnt.grid()
-            for frame, info in self.progPaths.items():
-                if info['show']:
-                    continue
-                else:
-                    frame.grid()
-                    self.progPaths[frame]['show'] = True
-                    break
-            parent.redraw()
-
-        def removeLine(frame: Frame) -> None:
-            frame.grid_remove()
-            self.progPaths[frame]['show'] = False
-            d = self.progPaths[frame]
-            self.clearPathEnt(d['name'], "Preferred name")
-            self.clearPathEnt(d['path'], "Path to executable")
-            active = [i for i in self.progPaths.values() if i['show']]
-            if len(active) == 1:
-                topNameEnt.grid_remove()
-            parent.redraw()
-
-        pathEntVal = parent.register(updatePathEnt)
-        nameEntVal = parent.register(updateNameEnt)
-        curRow = firstRow
-        for i in range(50):
-            # create holding frame
-            frm = Frame(parent)
-            frm.columnconfigure(1, weight=1)
-            frm.grid(column=0,
-                     row=curRow,
-                     columnspan=2,
-                     sticky='w')
-            # create 'name' entry
-            nameEnt = Entry(master=frm,
-                            style='Path.TEntry',
-                            validate='all',
-                            validatecommand=(nameEntVal, '%W', '%V', '%P'),
-                            width=nWd)
-            nameEnt.grid(column=0,
-                         row=0)
-            nameEnt.insert(0, "Preferred name")
-            # create 'path' entry
-            pathEnt = Entry(master=frm,
-                            style='Path.TEntry',
-                            validate='all',
-                            validatecommand=(pathEntVal, '%W', '%V', '%P'),
-                            width=pWd)
-            pathEnt.grid(column=1,
-                         row=0)
-            pathEnt.insert(0, "Path to executable")
-            if i == 0:
-                topNameEnt = nameEnt
-                # create 'add' button
-                btn = Button(master=frm,
-                             text="Add Another Executable",
-                             command=addLine)
-                nameEnt.grid_remove()
-            else:
-                # create 'remove' button
-                btn = Button(master=frm,
-                             text="Remove",
-                             command=(lambda f=frm: removeLine(f)))
-                frm.grid_remove()
-            btn.grid(column=2,
-                     row=0)
-            # add to dict
-            self.progPaths[frm] = {'show': i == 0,
-                                   'name': nameEnt,
-                                   'path': pathEnt,
-                                   'button': btn}
-            curRow += 1
-        browseBtn = Button(master=parent,
-                           text="Browse for Executable...",
-                           command=self.browseFolders)
-        browseBtn.grid(column=1,
-                       row=curRow,
-                       sticky='w')
-
     def getNext(self) -> None:
         if self.allGames:
             self.clearData()
             if isinstance(self.allGames, dict):
                 out = self.allGames.popitem()
-                self.game = str(out[0])
+                self.game = out[0]
                 self.fillData(out[1])
             else:
-                self.game: str = self.allGames.pop()
+                self.game = self.allGames.pop()
                 if self.adding and self.newGameCt > 1:
                     ct = (self.newGameCt - len(self.allGames))
                     self.title(self.wintitle.format(ct))
@@ -344,8 +250,8 @@ class _EditGamesDialog(Dialog):
             if i:
                 info['button'].invoke()
             else:
-                self.clearPathEnt(info['name'], "Preferred name")
-                self.clearPathEnt(info['path'], "Path to executable")
+                clearPathInput(info['name'], "Preferred name")
+                clearPathInput(info['path'], "Path to executable")
         self.infoDesc.delete(1.0, 'end')
         # clear togs
         for tog in (self.catToggles | self.tagToggles).values():
@@ -354,9 +260,9 @@ class _EditGamesDialog(Dialog):
         for cbx in (self.catSelects | self.tagSelects).values():
             cbx.set('')
 
-    def fillData(self, data: Opt[GAMEDATA_TYPE] = None) -> None:
+    def fillData(self, data: O[GAMEDATA_TYPE] = None) -> None:
         self.pathLbl.set(self.game)
-        self.gamePath: str = os_path.join(PATH_GAMES, self.game)
+        self.gamePath = os_path.join(PATH_GAMES, self.game)
         if data:
             exePaths = self.searchForExe(insert=False)
             data['Info'].update({'Version': '',
@@ -369,10 +275,10 @@ class _EditGamesDialog(Dialog):
 
     def searchForExe(self, insert: bool = True) -> U[str, list]:
         def searchThis(item: str) -> str:
-            if os_path.splitext(item)[1] in FILETYPES:
-                return os_path.relpath(item)
-            elif os_path.isfile(item):
+            if os_path.isfile(item):
                 return str()
+            elif os_path.splitext(item)[-1] in FILETYPES:
+                return os_path.relpath(item)
             # else
             for extension in FILETYPES:
                 for f in os_listdir(item):
@@ -456,7 +362,8 @@ class _EditGamesDialog(Dialog):
 
     def lookupOpenURL(self, open: bool = False) -> None:
         url = self.infoEnts['URL'].get()
-        if open or 'f95zone' not in url:
+        ver = self.infoEnts['Version'].get()
+        if open or ver or 'f95zone' not in url:
             if url:
                 try:
                     os_startfile(url)
@@ -464,94 +371,11 @@ class _EditGamesDialog(Dialog):
                     Mbox.showerror("Error", "Invalid URL")
             else:
                 Mbox.showerror("Error", "No URL specified")
-        if 'f95zone' in url and not self.infoEnts['Version'].get():
-            self.getF95Info(url)
+        if 'f95zone' in url and not ver:
+            GetF95Info(self.catToggles, self.catSelects, self.tagToggles,
+                       self.tagSelects, self.infoEnts, self.infoDesc, url)
 
-    def getF95Info(self, url: str) -> None:
-        def req_url():
-            raw = pool.request('GET', url).data
-            return raw.decode('utf-8', errors='ignore')
-
-        def formatStr(s: str) -> str:
-            string = re_sub(r'\s*(\r+|\n+)\s*',
-                            r'\n',
-                            ''.join(s))
-            encoded = string.encode('ascii', 'ignore')
-            return encoded.decode().strip()
-
-        def getProtagonist() -> str:
-            rawProtag = {t.split(' ')[0] for t in allTags
-                         if 'protagonist' in t}
-            protagCt = len(rawProtag)
-            if protagCt == 0:
-                return 'Unknown'
-            elif protagCt == 1:
-                for protag in TAG_SEL['Protagonist']:
-                    if protag.lower() in rawProtag:
-                        return protag
-                return 'Unknown'
-            elif rawProtag in [{'male', 'female'}, {'male', 'female', 'multiple'}]:
-                return 'Male/Female'
-            elif 'multiple' in rawProtag or protagCt > 1:
-                return 'Multiple'
-            else:
-                return 'Unknown'
-
-        # retrieve data
-        pool = PoolManager()
-        page = Html(req_url(), 'html.parser')
-
-        # get catagory data
-        rawTitle = page.select(Sel.title)
-        if rawTitle:
-            rawTitle = rawTitle[0].get_text().lower()
-            rawCatInfo = re_findall(r'(?<=\[).+?(?=\])',
-                                    formatStr(rawTitle))
-            if rawCatInfo:
-                if 'completed' in rawCatInfo:
-                    self.catToggles['Completed'].set(1)
-                for c in CAT_SEL['Format']:
-                    if c.lower() in rawCatInfo:
-                        self.catSelects['Format'].set(c)
-        # get tag data
-        rawTags = {t.get_text() for t in page.select(Sel.tags)}
-        if rawTags:
-            subbedTags = {v for k, v in (TAG_EQU | CAT_EQU).items()
-                          if k in rawTags}
-            allTags = rawTags - {*TAG_EQU, *CAT_EQU} | subbedTags
-            if allTags:
-                # set toggle tags
-                for tag in [t for t in TAG_TOG if t.lower() in allTags]:
-                    self.tagToggles[tag].set(1)
-                # set toggle categories
-                for tag in [t for t in CAT_TOG if t.lower() in allTags]:
-                    self.catToggles[tag].set(1)
-                # set art category
-                for art in [t for t in CAT_SEL['Art'] if t.lower() in allTags]:
-                    self.catSelects['Art'].set(art)
-                # set protagonist
-                if 'character creation' in allTags:
-                    protag = 'Created'
-                else:
-                    protag = getProtagonist()
-                self.tagSelects['Protagonist'].set(protag)
-        # get description
-        rawContent = page.select(Sel.desc)
-        if rawContent:
-            rawDesc = rawContent[0].find_parent().get_text()
-            desc = re_sub(r'(?s)\s*(Overview:?|Spoiler.+?register now\.)\s*',
-                          r'',
-                          formatStr(rawDesc))
-            self.infoDesc.insert(1.0, desc.strip())
-        # get version
-        rawVer: list[str] = [el.next_sibling for el in page.select(Sel.ver)
-                             if 'version' in el.get_text().lower()]
-        if rawVer:
-            ver = rawVer[0].strip(' :')
-            self.infoEnts['Version'].set(ver)
-        os_system('nircmd stdbeep')
-
-    def insertMasterlistData(self, data: Opt[GAMEDATA_TYPE] = None) -> None:
+    def insertMasterlistData(self, data: O[GAMEDATA_TYPE] = None) -> None:
         if not data:
             data = self.gamelib.masterlist[self.game]
         cattag = dict[str, U["IntVar", "Combobox"]]
@@ -579,6 +403,33 @@ class _EditGamesDialog(Dialog):
         self.deiconify()
 
     def submit(self) -> None:
+        if 'f95zone' in self.infoEnts['URL'].get():
+            url = re_sub(r'(?<=threads/).+?\.(?=\d+/$)',
+                         '',
+                         self.infoEnts['URL'].get())
+            self.infoEnts['URL'].set(url)
+        gamePath, progPaths = self.getProgPaths()
+        inf_ents = {k: v.get() for k, v in self.infoEnts.items()}
+        inf_pths = {'Program Path': progPaths}
+        inf_dscs = {'Description': self.infoDesc.get(1.0, 'end-1c').strip()}
+        cat_togs = {k: v.get() for k, v in self.catToggles.items()}
+        cat_lsts = {k: v.get() for k, v in self.catSelects.items()}
+        tag_togs = {k: v.get() for k, v in self.tagToggles.items()}
+        tag_lsts = {k: v.get() for k, v in self.tagSelects.items()}
+        # update 'new list' if necessary
+        if self.gamelib.newList.pop(self.game, None):
+            self.gamelib.saveNew()
+        # check if data is new
+        gamePath = gamePath.split('\\')[0]
+        newData = {'Info': (inf_ents | inf_pths | inf_dscs),
+                   'Categories': (cat_togs | cat_lsts),
+                   'Tags': (tag_togs | tag_lsts)}
+        oldData = self.gamelib.masterlist.get(self.game)
+        if newData != oldData:
+            self.updateData(gamePath, oldData, newData)
+        self.getNext()
+
+    def getProgPaths(self) -> tuple[str, U[str, list, dict]]:
         pPthDct: dict[str, str] = dict()
         isDct = False
         for d in self.progPaths.values():
@@ -600,32 +451,38 @@ class _EditGamesDialog(Dialog):
         else:
             pPths = list(pPthDct)
             gamePath = pPths[0]
+        return (gamePath, pPths)
 
-        inf_ents = {k: v.get() for k, v in self.infoEnts.items()}
-        inf_pths = {'Program Path': pPths}
-        inf_dscs = {'Description': self.infoDesc.get(1.0, 'end-1c').strip()}
-        cat_togs = {k: v.get() for k, v in self.catToggles.items()}
-        cat_lsts = {k: v.get() for k, v in self.catSelects.items()}
-        tag_togs = {k: v.get() for k, v in self.tagToggles.items()}
-        tag_lsts = {k: v.get() for k, v in self.tagSelects.items()}
-        # update 'new list' if necessary
-        if self.gamelib.newList.pop(self.game, None):
-            self.gamelib.saveNew()
-        # check if data is new
-        gamePath: str = gamePath.split('\\')[0]
-        newData = {'Info': (inf_ents | inf_pths | inf_dscs),
-                   'Categories': (cat_togs | cat_lsts),
-                   'Tags': (tag_togs | tag_lsts)}
-        if self.game != gamePath or newData != self.gamelib.masterlist.get(self.game):
+    def updateData(self, gamePath: str, oldData: O[GAMEDATA_TYPE], newData: GAMEDATA_TYPE) -> None:
+        newPath = self.game != gamePath
+        oldVer = self.gamelib.masterlist[self.game]['Info']['Version'] if oldData else ''
+        newVer = newData['Info']['Version']
+        oldTitle = self.gamelib.masterlist[self.game]['Info']['Title'] if oldData else ''
+        newTitle = newData['Info']['Title']
+        if newPath or not oldData or oldVer != newVer:
+            # update recent list
+            curList = self.gamelib.recentList['new'].copy()
+            if oldData:
+                if oldTitle in curList:
+                    curList.remove(oldTitle)
+            curList.insert(0, newTitle)
+            while len(curList) > MAX_RECENT_GAMES:
+                curList.pop()
+            if curList != self.gamelib.recentList['new']:
+                self.gamelib.recentList['new'] = curList
+                self.gamelib.saveRecent()
             # check if path has changed
-            if self.game != gamePath:
+            if newPath:
                 self.gamelib.masterlist.pop(self.game, None)
                 self.game = gamePath
-            # update master list
-            self.gamelib.masterlist[self.game] = newData
-            self.gamelib.save()
-            self.updateGames = True if self.adding else self.game
-        self.getNext()
+        elif oldTitle != newTitle:
+            i = self.gamelib.recentList['new'].index(oldTitle)
+            self.gamelib.recentList['new'][i] = newTitle
+            self.gamelib.saveRecent()
+        # update master list
+        self.gamelib.masterlist[self.game] = newData
+        self.gamelib.save()
+        self.updateGames = True if self.adding else self.game
 
 
 def EditGames(parent: U[Tk, LFrame, Canvas], gamelib: "GameLib", allGames: U[dict, list], adding: bool = False) -> U[bool, str]:

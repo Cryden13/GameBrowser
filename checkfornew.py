@@ -1,8 +1,9 @@
+from tkinter.ttk import Style
 from tkinter import Tk
 from os import chdir
 
-from constants import PATH_GAMES, CENTER, EDIT_WD, EDIT_HT
 from gamelibrary import GameLib
+from constants import *
 
 
 class HiddenTk(Tk):
@@ -11,6 +12,10 @@ class HiddenTk(Tk):
         self.geometry(f'+{CENTER.x - EDIT_WD / 2:.0f}'
                       f'+{CENTER.y - EDIT_HT / 2:.0f}')
         self.withdraw()
+        Style().configure('.', font=FONT_DEF)
+        self.option_add('*font', FONT_DEF)
+        self.option_add('*TEntry.font', FONT_MD)
+        self.option_add('*TCombobox.font', FONT_MD)
 
 
 def main():

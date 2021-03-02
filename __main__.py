@@ -1,7 +1,7 @@
 from os import chdir
 
 from constants import PATH_GAMES
-from window import GUI
+from browse import GUI
 from gamelibrary import GameLib
 
 
