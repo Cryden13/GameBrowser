@@ -1,14 +1,22 @@
 from tkinter.ttk import Label, Entry, Button, Style
-from os import chdir, system as os_system, path as os_path
+from subprocess import Popen
 from tkinter import Tk
 
-from gamelibrary import GameLib
-from editlist import EditGames
-from constants import *
+try:
+    from ..editlist import *
+    from ..constants import *
+except ImportError:
+    from pathlib import Path
+    pth = Path(__file__).parents[2]
+    Popen(['py', '-m', pth.name, 'add', 'console'], cwd=pth.parent).wait()
+    raise SystemExit
+
+if TYPE_CHECKING:
+    from ..gamelibrary import GameLib
 
 
-class GUI(Tk):
-    gamelib: GameLib
+class AddGUI(Tk):
+    gamelib: "GameLib"
     ct: int
     url: Entry
     name: Entry
@@ -18,9 +26,10 @@ class GUI(Tk):
         Tk.__init__(self)
         self.geometry(f'{ADD_WD}'
                       f'x{ADD_HT}'
-                      f'+{CENTER.x - EDIT_WD / 2:.0f}'
-                      f'+{CENTER.y - EDIT_HT / 2:.0f}')
+                      f'+{CENTER_X - ADD_WD // 2}'
+                      f'+{CENTER_Y - ADD_HT // 2}')
         self.title("Add Games")
+        self.attributes('-topmost', True)
         self.configure(padx=10, pady=10)
         self.bind_class('addgame_class', '<Escape>', lambda _: self.destroy())
         self.bind_class('addgame_class', '<Return>', lambda _: self.more())
@@ -29,8 +38,9 @@ class GUI(Tk):
         self.option_add('*font', FONT_DEF)
         self.option_add('*TEntry.font', FONT_MD)
         self.option_add('*TCombobox.font', FONT_MD)
+        self.update_idletasks()
 
-    def start_main(self, gamelib: GameLib) -> None:
+    def start_main(self, gamelib: "GameLib") -> None:
         self.gamelib = gamelib
         self.ct = int()
         self.url = self.labelEntry("Site URL:")
@@ -81,13 +91,13 @@ class GUI(Tk):
     def getInfo(self) -> bool:
         data = dict(name=self.name.get(),
                     url=self.url.get())
-        fol = self.folder.get()
-        if os_path.exists(fol):
-            self.gamelib.newList[fol] = data
+        fol = Path(self.folder.get()).resolve()
+        if fol.exists():
+            self.gamelib.newlist[fol] = data
             return False
         else:
             Mbox.showerror(title="Error",
-                           message=f"The folder '{fol}' does not exist!")
+                           message=f"The folder '{fol.name}' does not exist!")
             return True
 
     def clearInfo(self) -> None:
@@ -95,15 +105,19 @@ class GUI(Tk):
         self.name.delete(0, 'end')
         self.url.delete(0, 'end')
         self.url.focus()
-        os_system('nircmd stdbeep')
+        Popen(['powershell',
+               '-command',
+               '[system.media.systemsounds]::Beep.play()'])
 
     def more(self) -> None:
         if self.getInfo():
             return
-        EditGames(parent=self,
-                  gamelib=self.gamelib,
-                  allGames=[self.folder.get()],
-                  adding=True)
+        res = EditGames(parent=self,
+                        gamelib=self.gamelib,
+                        allGames=[Path(self.folder.get()).resolve()],
+                        adding=True)
+        if not res:
+            self.save()
         self.clearInfo()
 
     def save(self) -> None:
@@ -111,11 +125,3 @@ class GUI(Tk):
             return
         self.gamelib.saveNew()
         self.clearInfo()
-
-
-if __name__ == "__main__":
-    chdir(PATH_GAMES)
-    root = GUI()
-    lib = GameLib(root)
-    root.start_main(lib)
-    root.mainloop()
