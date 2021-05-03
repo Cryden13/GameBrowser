@@ -1,6 +1,7 @@
 from contextlib import redirect_stderr
+from commandline import openfile
 from traceback import format_exc
-from subprocess import Popen
+from winnotify import playSound
 from sys import argv
 from os import chdir
 
@@ -8,9 +9,10 @@ from os import chdir
 try:
     from .src import *
 except ImportError:
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parent
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 
@@ -33,17 +35,18 @@ class main:
         root.mainloop()
 
     def doLog(self):
+        from datetime import datetime
+
         errlog = PATH_PROG.joinpath('errorlog.txt')
         with errlog.open('w') as log:
             with redirect_stderr(log):
                 try:
                     self.run()
                 except:
-                    log.write(f'\n{format_exc()}')
+                    log.write(f'\n{datetime.now()}\n{format_exc()}')
         if errlog.read_text():
-            Popen(['powershell',
-                   '-command',
-                   f'[system.media.systemsounds]::Hand.play(); Start-Process "{errlog}"'])
+            playSound()
+            openfile(errlog)
         else:
             errlog.unlink()
 

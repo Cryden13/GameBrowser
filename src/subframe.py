@@ -5,10 +5,10 @@ from tkinter.ttk import Checkbutton, Combobox
 try:
     from .constants import *
 except ImportError:
-    from subprocess import Popen
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[1]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 OUTTYPE: tuple[LFrame, dict[str, IntVar], dict[str, Combobox]] = tuple

@@ -1,14 +1,15 @@
 from tkinter.ttk import Label, Entry, Button, Style
-from subprocess import Popen
+from winnotify import playSound
 from tkinter import Tk
 
 try:
     from ..editlist import *
     from ..constants import *
 except ImportError:
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'add', 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'add', 'console'], cwd=pth.parent)
     raise SystemExit
 
 if TYPE_CHECKING:
@@ -21,6 +22,7 @@ class AddGUI(Tk):
     url: Entry
     name: Entry
     folder: Entry
+    image: Entry
 
     def __init__(self):
         Tk.__init__(self)
@@ -46,6 +48,7 @@ class AddGUI(Tk):
         self.url = self.labelEntry("Site URL:")
         self.name = self.labelEntry("Game name:")
         self.folder = self.labelEntry("Game folder:")
+        self.image = self.labelEntry("Image name:")
 
         exitBtn = Button(master=self,
                          text="Close (Esc)",
@@ -90,7 +93,8 @@ class AddGUI(Tk):
 
     def getInfo(self) -> bool:
         data = dict(name=self.name.get(),
-                    url=self.url.get())
+                    url=self.url.get(),
+                    image=self.image.get())
         fol = Path(self.folder.get()).resolve()
         if fol.exists():
             self.gamelib.newlist[fol] = data
@@ -101,13 +105,12 @@ class AddGUI(Tk):
             return True
 
     def clearInfo(self) -> None:
+        self.image.delete(0, 'end')
         self.folder.delete(0, 'end')
         self.name.delete(0, 'end')
         self.url.delete(0, 'end')
         self.url.focus()
-        Popen(['powershell',
-               '-command',
-               '[system.media.systemsounds]::Beep.play()'])
+        playSound('Beep')
 
     def more(self) -> None:
         if self.getInfo():

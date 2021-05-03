@@ -12,10 +12,10 @@ try:
     from ..subframe import SubFrm
     from ..constants import *
 except ImportError:
-    from subprocess import Popen
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 if TYPE_CHECKING:
@@ -398,7 +398,9 @@ class BrowseGUI(Tk):
                              command=lambda x=exePath: run(x))
                 btn.grid(sticky='ew')
             scrl.redraw()
-            wd = (scrl.winfo_reqwidth() + scrl.vScrbar.winfo_reqwidth() + PAD * 2)
+            wd = (scrl.winfo_reqwidth() +
+                  scrl.scrollbar_v.winfo_reqwidth() +
+                  PAD * 2)
             ht = min(RUN_MAX_HT, (scrl.winfo_reqheight() + PAD * 2))
             posX = event.x_root - 5
             posY = event.y_root

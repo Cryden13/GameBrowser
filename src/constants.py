@@ -1,11 +1,12 @@
-from configparser import ConfigParser
 from configparser import ExtendedInterpolation as ExtInterp
+from win32api import GetMonitorInfo, MonitorFromPoint
+from configparser import ConfigParser
 from tkinter import messagebox as Mbox
-from typing import TYPE_CHECKING
-from typing import (Union as U,
+from typing import (Callable as C,
                     Optional as O,
-                    Callable as C)
-from screeninfo import get_monitors
+                    Union as U)
+from typing import TYPE_CHECKING
+from win32gui import FindWindow
 from joinwith import joinwith
 from PIL import ImageFont
 from pathlib import Path
@@ -122,10 +123,10 @@ TAG_EQU: dict[str, str] = {
 }
 
 # screen vars
-mon = get_monitors()[0]
-SCREEN_WD = mon.width
+mon: dict[str, list[int]] = GetMonitorInfo(MonitorFromPoint((0, 0)))
+SCREEN_WD = mon.get('Monitor', [*[0]*4])[2]
+SCREEN_HT = mon.get('Work', [*[0]*4])[3]
 CENTER_X = (SCREEN_WD // 2)
-SCREEN_HT = mon.height
 CENTER_Y = (SCREEN_HT // 2)
 
 del (ConfigParser,
@@ -133,7 +134,9 @@ del (ConfigParser,
      ImageFont,
      split,
      joinwith,
-     get_monitors,
+     GetMonitorInfo,
+     MonitorFromPoint,
+     FindWindow,
      cfgfile,
      cfg,
      sct,
@@ -142,7 +145,7 @@ del (ConfigParser,
 
 
 if __name__ == '__main__':
-    from subprocess import Popen
+    from subprocess import run
     pth = Path(__file__).parents[1]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit

@@ -9,8 +9,8 @@ def clearPathInput(widget: Entry, defTxt: str) -> None:
 
 
 if __name__ == '__main__':
-    from subprocess import Popen
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit

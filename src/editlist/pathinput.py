@@ -1,17 +1,17 @@
-from tkinter import Frame
-from tkinter import LabelFrame as LFrame
-from tkinter.ttk import Entry, Button, Style
 from scrolledframe import ScrolledFrame as SFrame
+from tkinter.ttk import Entry, Button, Style
+from tkinter import LabelFrame as LFrame
 from changecolor import invert
+from tkinter import Frame
 
 try:
-    from ..constants import *
     from .pathclear import clearPathInput
+    from ..constants import *
 except ImportError:
-    from subprocess import Popen
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 PPTH: dict[Frame, dict[str, U[bool, Entry, Button]]] = dict

@@ -1,16 +1,17 @@
+from re import (findall as re_findall,
+                sub as re_sub)
 from bs4 import BeautifulSoup as Html
+from winnotify import playSound
 from urllib3 import PoolManager
-from subprocess import Popen
-from re import (sub as re_sub,
-                findall as re_findall)
 
 try:
     from ..constants import _SELECTORS as Sel
     from ..constants import *
 except ImportError:
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 if TYPE_CHECKING:
@@ -57,7 +58,7 @@ class GetF95Info(Html):
         self.fillDescription(rawContent)
         # version
         self.fillVersion()
-        Popen(['powershell', '-command', '[system.media.systemsounds]::Beep.play()'])
+        playSound('Beep')
 
     def fillHeader(self, rawHeader) -> None:
         if not rawHeader:

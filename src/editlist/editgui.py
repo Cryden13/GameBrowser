@@ -1,12 +1,13 @@
 from tkinter.filedialog import (askopenfilenames as Askfiles,
                                 askopenfilename as Askfile)
-from tkinter.ttk import Label, Entry, Button
 from tkinter import Frame, StringVar, Text
 from tkinter import LabelFrame as LFrame
 from tkinter.simpledialog import Dialog
-from subprocess import Popen
+from tkinter.ttk import Entry, Button
 from re import sub as re_sub
+from subprocess import run
 from os import startfile
+from shutil import move
 
 try:
     from .getinfo import GetF95Info
@@ -16,7 +17,7 @@ try:
 except ImportError:
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 if TYPE_CHECKING:
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 class EditGUI(Dialog):
     parent: "U[Tk, LFrame, Canvas]"
     gamelib: "GameLib"
-    allGames: U[dict[Path, GAMEDATA_TYPE], list[Path]]
+    allGames: U[dict[Path, Path], list[Path]]
     adding: bool
     updateGames: U[bool, Path]
     newGameCt: int
@@ -45,6 +46,7 @@ class EditGUI(Dialog):
     titleEnt: Entry
     infoDesc: Text
     game: Path
+    oldgame: Path
 
     def __init__(self, parent: "U[Tk, LFrame, Canvas]", gamelib: "GameLib", allGames: U[dict, list], adding: bool):
         self.parent = parent
@@ -130,15 +132,16 @@ class EditGUI(Dialog):
 #  / (_ / _/  / /   /    / _/_>  <  / /
 #  \___/___/ /_/   /_/|_/___/_/|_| /_/
 
+
     def getNext(self) -> None:
         if self.allGames:
             self.clearData()
             if isinstance(self.allGames, dict):
-                out = self.allGames.popitem()
-                self.game = out[0]
-                self.fillData(out[1])
+                self.game, self.oldgame = self.allGames.popitem()
+                data = self.gamelib.masterlist.get(self.oldgame)
+                self.fillData(data)
             else:
-                self.game = self.allGames.pop()
+                self.game = self.oldgame = self.allGames.pop()
                 if self.adding and self.newGameCt > 1:
                     ct = (self.newGameCt - len(self.allGames))
                     self.title(self.wintitle.format(ct))
@@ -172,6 +175,7 @@ class EditGUI(Dialog):
             exePaths = self.searchForExe(insert=False)
             data['Info'].update({'Version': '',
                                  'Program Path': exePaths})
+            data['Categories'].update({'Status': 'New'})
             self.insertMasterlistData(data)
         elif self.game in self.gamelib.masterlist:
             self.insertMasterlistData(None)
@@ -189,6 +193,7 @@ class EditGUI(Dialog):
         if data:
             self.infoEnts['Title'].set(data['name'])
             self.infoEnts['URL'].set(data['url'])
+            self.infoEnts['Image'].set(data['image'])
             self.searchForExe()
             self.lookupOpenURL(open=True)
         else:
@@ -296,9 +301,10 @@ class EditGUI(Dialog):
             if insert:
                 self.insertProgPaths(exePaths)
         else:
-            exePaths = list(filter(None,
-                                   [searchHere(fol) for fol
-                                    in self.game.iterdir()]))
+            exePaths = {Path(p).stem: Path(p)
+                        for p in filter(None,
+                                        [searchHere(fol) for fol
+                                         in self.game.iterdir()])}
             if not exePaths:
                 find = Mbox.askyesno(title="Missing Executable",
                                      message=(f"Couldn't find executable(s) for '{self.game.name}.'\n"
@@ -316,7 +322,8 @@ class EditGUI(Dialog):
                                        **(dict(initialdir=self.game) if self.game.is_dir() else
                                           dict(initialdir=self.game.parent, initialfile=self.game.name)))
         if rawPaths:
-            relpaths = [Path(p) for p in rawPaths]
+            relpaths = {Path(p).stem: Path(p)
+                        for p in rawPaths}
             self.insertProgPaths(relpaths)
         self.deiconify()
 
@@ -339,7 +346,7 @@ class EditGUI(Dialog):
             self.submit()
         except:
             from traceback import format_exc
-            Mbox.showerror('editlist Error', format_exc())
+            Mbox.showerror('editgui Error', format_exc())
 
     def submit(self) -> None:
         if 'f95zone' in self.infoEnts['URL'].get():
@@ -347,12 +354,8 @@ class EditGUI(Dialog):
                          '',
                          self.infoEnts['URL'].get())
             self.infoEnts['URL'].set(url)
-        img = PATH_IMGS.joinpath(self.infoEnts['Image'].get())
-        if img.exists() and img.suffix != ".jpg" and img.stat().st_size > (1000**2):
-            new = img.with_suffix(".jpg")
-            Popen(f'magick "{img}" "{new}"')
-            img.unlink()
-            self.infoEnts['Image'].set(new)
+        if self.getImage():
+            return
         gamePath, progPaths = self.getProgPaths()
         inf_ents = {k: v.get() for k, v in self.infoEnts.items()}
         inf_pths = {'Program Path': progPaths}
@@ -368,10 +371,40 @@ class EditGUI(Dialog):
         newData = {'Info': (inf_ents | inf_pths | inf_dscs),
                    'Categories': (cat_togs | cat_lsts),
                    'Tags': (tag_togs | tag_lsts)}
-        oldData = self.gamelib.masterlist.get(self.game)
+        oldData = self.gamelib.masterlist.get(self.oldgame)
         if newData != oldData:
             self.updateData(gamePath, oldData, newData)
         self.getNext()
+
+    def getImage(self) -> bool:
+        def findImg(pth: Path) -> O[Path]:
+            image = pth.joinpath(imgstr)
+            if not image.suffix:
+                for i in pth.iterdir():
+                    if i.stem == image.stem:
+                        return i
+            else:
+                return image if image.exists() else None
+
+        imgstr = self.infoEnts['Image'].get()
+        if not imgstr:
+            return
+        img = findImg(PATH_IMGS)
+        if not img:
+            img = findImg(Path.home().joinpath('desktop'))
+            if img:
+                img = Path(move(img, PATH_IMGS.joinpath(img.name)))
+            else:
+                Mbox.showerror('editlist Error',
+                               f'The image "{img}" could not be found')
+                return True
+        self.infoEnts['Image'].set(img.name)
+        if img.suffix != ".jpg" and (img.stat().st_size > (1000**2) or img.suffix == '.gif'):
+            new = img.with_suffix(".jpg")
+            run(f'magick "{img}[0]" "{new}"')
+            img.unlink()
+            self.infoEnts['Image'].set(new.name)
+        return
 
     def getProgPaths(self) -> tuple[Path, U[Path, dict[str, Path]]]:
         pPthDct: dict[str, Path] = dict()
@@ -396,11 +429,11 @@ class EditGUI(Dialog):
     def updateData(self, gamePath: Path, oldData: O[GAMEDATA_TYPE], newData: GAMEDATA_TYPE) -> None:
         pathIsNew = (not self.game.samefile(gamePath)
                      if self.game.exists() else True)
-        oldVer = self.gamelib.masterlist[self.game]['Info']['Version'] if oldData else ''
+        oldVer = self.gamelib.masterlist[self.oldgame]['Info']['Version'] if oldData else ''
         newVer = newData['Info']['Version']
-        oldTitle = self.gamelib.masterlist[self.game]['Info']['Title'] if oldData else ''
+        oldTitle = self.gamelib.masterlist[self.oldgame]['Info']['Title'] if oldData else ''
         newTitle = newData['Info']['Title']
-        if (pathIsNew or not oldData or oldVer != newVer) or (oldTitle != newTitle):
+        if pathIsNew or not oldData or oldVer != newVer or oldTitle != newTitle:
             # update recent list
             oldList = 'updated' if oldData else 'added'
             curList = self.gamelib.recentlist[oldList].copy()
@@ -416,7 +449,7 @@ class EditGUI(Dialog):
                 self.gamelib.saveRecent()
             # check if path has changed
             if pathIsNew:
-                self.gamelib.masterlist.pop(self.game, None)
+                self.gamelib.masterlist.pop(self.oldgame, None)
                 self.game = gamePath
         # update master list
         self.gamelib.masterlist[self.game] = newData

@@ -7,10 +7,10 @@ try:
     from .editlist import EditGames
     from .constants import *
 except ImportError:
-    from subprocess import Popen
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[1]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ class GameLib:
         with PATH_LIST.open('r') as f:
             mlist: dict[str, GAMEDATA_TYPE] = json_load(f)
         for k in list(mlist):
-            key = Path(k).resolve()
+            game = Path(k).resolve()
             data = mlist.pop(k)
             ppth = data['Info']['Program Path']
             if isinstance(ppth, dict):
@@ -42,13 +42,13 @@ class GameLib:
             else:
                 out = Path(ppth).resolve()
             data['Info']['Program Path'] = out
-            self.masterlist[key] = deepcopy(data)
+            self.masterlist[game] = deepcopy(data)
         # recentlist
         with PATH_RECENT.open('r') as f:
             self.recentlist = json_load(f)
         # newlist
         with PATH_NEW.open('r') as f:
-            self.newlist = {PATH_GAMES.joinpath(k).resolve(): v
+            self.newlist = {PATH_GAMES.joinpath(k): v
                             for k, v in json_load(f).items()}
         self.checkForMissingGames()
         self.insertNewTags()
@@ -74,10 +74,9 @@ class GameLib:
                                       initialdir=PATH_GAMES,
                                       mustexist=True)
                 if newPath:
-                    data = self.masterlist.get(game)
                     EditGames(parent=self.root,
                               gamelib=self,
-                              allGames={Path(newPath): data})
+                              allGames={Path(newPath): game})
             else:
                 break
 
@@ -182,16 +181,16 @@ class GameLib:
         self.alphabetize()
         mlist = dict()
         for k in self.masterlist:
+            gpath = str(k.resolve().relative_to(PATH_GAMES))
             data = deepcopy(self.masterlist[k])
             ppth = data['Info']['Program Path']
-            oldpth = str(k.relative_to(PATH_GAMES))
             if isinstance(ppth, dict):
                 for nm, pth in ppth.items():
                     ppth[nm] = str(pth.resolve().relative_to(PATH_GAMES))
             else:
                 ppth = str(ppth.resolve().relative_to(PATH_GAMES))
             data['Info']['Program Path'] = ppth
-            mlist[oldpth] = data
+            mlist[gpath] = data
         with PATH_LIST.open('w') as f:
             json_dump(mlist, f, indent=4)
 

@@ -1,16 +1,17 @@
-from tkinter import LabelFrame as LFrame
-from tkinter import Text, Frame, StringVar
 from tkinter.ttk import Label, Button, Entry
-from subprocess import Popen
+from tkinter import Text, Frame, StringVar
+from tkinter import LabelFrame as LFrame
+from commandline import openatfile
 
 try:
     from ..constants import *
     from ..subframe import SubFrm
     from .pathinput import ProgramPathInput
 except ImportError:
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 if TYPE_CHECKING:
@@ -51,7 +52,7 @@ class BuildBody(LFrame):
                  sticky='w')
         pathBtn = Button(master=pathFrm,
                          text="Open",
-                         command=(lambda: Popen(['explorer.exe', '/select,', self.gui.game])))
+                         command=(lambda: openatfile(self.gui.game)))
         pathBtn.grid(column=1,
                      row=0)
 

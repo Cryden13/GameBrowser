@@ -1,17 +1,18 @@
 
-from tkinter import LabelFrame as LFrame
 from tkinter import Canvas, Text, Event, Toplevel
-from os import startfile as os_startfile
-from PIL import Image, ImageDraw, ImageFont, ImageTk
+from PIL import Image, ImageDraw, ImageFont
+from tkinter import LabelFrame as LFrame
 from changecolor import darken, lighten
+from PIL.ImageTk import PhotoImage
+from os import startfile
 
 try:
     from ..constants import *
 except ImportError:
-    from subprocess import Popen
+    from subprocess import run
     from pathlib import Path
     pth = Path(__file__).parents[2]
-    Popen(['py', '-m', pth.name, 'console'], cwd=pth.parent).wait()
+    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
 
@@ -64,7 +65,7 @@ class LineItem:
                                     cmd=startGame,
                                     fnt=FONT_TTL)
         # link btn
-        def openLink(_): os_startfile(self.info['URL'])
+        def openLink(_): startfile(self.info['URL'])
         linkBtn = self.canvasButton(color=COLOR_LINK,
                                     txt='www',
                                     cmd=openLink)
@@ -168,20 +169,26 @@ class LineItem:
         def zoom(_):
             tw = Toplevel(lf)
             tw.overrideredirect(1)
+            xpos, ypos = lf.winfo_rootx(), lf.winfo_rooty()
+            if xpos + img.width > SCREEN_WD:
+                xpos = SCREEN_WD - img.width
+            if ypos + img.height > SCREEN_HT:
+                ypos = SCREEN_HT - img.height
             tw.geometry(f'{img.width}x{img.height}'
-                        f'+{lf.winfo_rootx()}'
-                        f'+{lf.winfo_rooty()}')
+                        f'+{xpos}'
+                        f'+{ypos}')
             tcnv = Canvas(master=tw,
                           bd=1,
                           relief='groove')
             tcnv.pack(fill='both', expand=True)
-            imglg = ImageTk.PhotoImage(img)
+            imglg = PhotoImage(img)
             tcnv.create_image(0, 0, anchor='nw', image=imglg)
             tcnv.image = imglg
 
             tw.focus_set()
-            tw.bind(sequence='<Leave>',
-                    func=lambda _: tw.destroy())
+            for seq in 'Leave Escape ButtonRelease-1'.split():
+                tw.bind(sequence=f'<{seq}>',
+                        func=lambda _: tw.destroy())
 
         # create frm
         lf = LFrame(master=self.lineitem,
@@ -218,6 +225,7 @@ class LineItem:
         imgpth = PATH_IMGS.joinpath(self.info.get('Image') or 'default.png')
         if imgpth.exists():
             img = Image.open(imgpth).convert('RGBA')
+            img.thumbnail((1920, 1080))
         else:
             fntpth = Path(f'C:\\Windows\\Fonts\\{FONT_TTL[0]}.ttf')
             efnt = ImageFont.truetype(font=str(fntpth if fntpth.exists()
@@ -252,7 +260,7 @@ class LineItem:
                          stroke_fill=(0, 0, 0, 255))
         thumb.alpha_composite(tn_txt)
 
-        imgsm = ImageTk.PhotoImage(thumb)
+        imgsm = PhotoImage(thumb)
         cnv.create_image(0, 0, anchor='nw', image=imgsm)
         cnv.image = imgsm
 
