@@ -1,10 +1,22 @@
-
-from tkinter import Canvas, Text, Event, Toplevel
-from PIL import Image, ImageDraw, ImageFont
-from tkinter import LabelFrame as LFrame
-from changecolor import darken, lighten
 from PIL.ImageTk import PhotoImage
 from os import startfile
+
+from tkinter import (
+    LabelFrame as LFrame,
+    Canvas,
+    Text,
+    Event,
+    Toplevel
+)
+from PIL import (
+    Image,
+    ImageDraw,
+    ImageFont
+)
+from changecolor import (
+    darken,
+    lighten
+)
 
 try:
     from ..constants import *
@@ -124,8 +136,7 @@ class LineItem:
                           inputtype='RGB16')[1:]
         self.titleImg(txtclr=f'#{clr}ff')
         # categories
-        ero = ['[Eroge]'] if cats.pop('Eroge') else list()
-        curCats = [f'{c}: {v}' for c, v in cats.items()] + ero
+        curCats = [f'{c}: {v}' for c, v in cats.items()]
         self.textbox(title="Categories",
                      wd=TEXTBOX_WD['categories'],
                      txt='\n'.join(curCats))

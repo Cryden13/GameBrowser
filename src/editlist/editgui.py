@@ -1,13 +1,26 @@
-from tkinter.filedialog import (askopenfilenames as Askfiles,
-                                askopenfilename as Askfile)
-from tkinter import Frame, StringVar, Text
-from tkinter import LabelFrame as LFrame
 from tkinter.simpledialog import Dialog
-from tkinter.ttk import Entry, Button
-from re import sub as re_sub
+from datetime import datetime
 from subprocess import run
 from os import startfile
 from shutil import move
+from tkinter.filedialog import (
+    askopenfilenames as Askfiles,
+    askopenfilename as Askfile
+)
+from tkinter import (
+    LabelFrame as LFrame,
+    Frame,
+    StringVar,
+    Text
+)
+from tkinter.ttk import (
+    Entry,
+    Button
+)
+from re import (
+    sub as re_sub,
+    split as re_split
+)
 
 try:
     from .getinfo import GetF95Info
@@ -47,6 +60,7 @@ class EditGUI(Dialog):
     infoDesc: Text
     game: Path
     oldgame: Path
+    old_ver: str
 
     def __init__(self, parent: "U[Tk, LFrame, Canvas]", gamelib: "GameLib", allGames: U[dict, list], adding: bool):
         self.parent = parent
@@ -54,6 +68,8 @@ class EditGUI(Dialog):
         self.allGames = allGames
         self.adding = adding
         self.updateGames = False
+        self.infoEnts = dict()
+        self.progPaths = dict()
         if adding:
             self.newGameCt = len(allGames)
             if self.newGameCt > 1:
@@ -76,6 +92,22 @@ class EditGUI(Dialog):
 #    / _ )/ / / /  _/ /  / _ \
 #   / _  / /_/ // // /__/ // /
 #  /____/\____/___/____/____/
+
+    def body(self, master: Frame) -> Entry:
+        # initialize window
+        # self.geometry(self.parent.geometry())
+        self.geometry(f'{EDIT_WD}x{EDIT_HT}')
+        master.pack(expand=True,
+                    fill='both')
+        master.columnconfigure(0, weight=1)
+        for n in [1, 2, 3]:
+            master.rowconfigure(n, weight=1)
+        # create GUI
+        BuildBody(gui=self,
+                  parent=master)
+        # fill info
+        self.getNext()
+        return self.titleEnt
 
     def buttonbox(self) -> None:
         btnFrm = LFrame(self,
@@ -107,24 +139,6 @@ class EditGUI(Dialog):
                      row=0,
                      sticky='' if self.adding else 'w',
                      padx=25)
-
-    def body(self, master: Frame) -> Entry:
-        # initialize window
-        self.geometry(self.parent.geometry())
-        self.geometry(f'{EDIT_WD}x{EDIT_HT}')
-        self.infoEnts = dict()
-        self.progPaths = dict()
-        master.pack(expand=True,
-                    fill='both')
-        master.columnconfigure(0, weight=1)
-        for n in [1, 2, 3]:
-            master.rowconfigure(n, weight=1)
-        # create GUI
-        BuildBody(gui=self,
-                  parent=master)
-        # fill info
-        self.getNext()
-        return self.titleEnt
 
 
 #    _______________  _  _______  ________
@@ -169,13 +183,13 @@ class EditGUI(Dialog):
             cbx.set('')
         self.update()
 
-    def fillData(self, data: O[GAMEDATA_TYPE] = None) -> None:
+    def fillData(self, data: GAMEDATA_TYPE = None) -> None:
         self.pathLbl.set(self.game.name)
         if data:
             exePaths = self.searchForExe(insert=False)
             data['Info'].update({'Version': '',
                                  'Program Path': exePaths})
-            data['Categories'].update({'Status': 'New'})
+            data['Categories'].update({'Status': 'Updated'})
             self.insertMasterlistData(data)
         elif self.game in self.gamelib.masterlist:
             self.insertMasterlistData(None)
@@ -234,6 +248,9 @@ class EditGUI(Dialog):
         # insert info
         for lbl, cb in self.infoEnts.items():
             cb.set(data['Info'][lbl])
+        self.old_ver = re_split(pattern=r' (?=\([\d/]{8}\)$)',
+                                string=data['Info']['Version'])
+        self.infoEnts['Version'].set(self.old_ver[0])
         progPaths = data['Info']['Program Path']
         self.insertProgPaths(progPaths)
         self.infoDesc.insert(1.0, data['Info']['Description'])
@@ -244,7 +261,10 @@ class EditGUI(Dialog):
         # insert tags
         tags: cattag = (self.tagToggles | self.tagSelects)
         for lbl, cb in tags.items():
-            cb.set(data['Tags'][lbl])
+            try:
+                cb.set(data['Tags'][lbl])
+            except KeyError:
+                cb.set(0)
 
 #     ___  ___  ____  _________________
 #    / _ \/ _ \/ __ \/ ___/ __/ __/ __/
@@ -280,8 +300,9 @@ class EditGUI(Dialog):
                     if i:
                         self.addPpthLine()
                         frm = next(iterFrms)
-                    self.progPaths[frm]['name'].delete(0, 'end')
-                    self.progPaths[frm]['name'].insert(0, name)
+                    if self.progPaths[frm]['name'].get() == 'Preferred name':
+                        self.progPaths[frm]['name'].delete(0, 'end')
+                        self.progPaths[frm]['name'].insert(0, name)
                     self.progPaths[frm]['path'].delete(0, 'end')
                     self.progPaths[frm]['path'].insert(0, path)
 
@@ -290,7 +311,8 @@ class EditGUI(Dialog):
             if item.is_dir():
                 for ext in FILETYPES:
                     for f in item.glob(f'*{ext}'):
-                        return f
+                        if f.stem[-2:] != '32':
+                            return f
             elif item.suffix in FILETYPES:
                 return item
             else:
@@ -350,17 +372,26 @@ class EditGUI(Dialog):
 
     def submit(self) -> None:
         if 'f95zone' in self.infoEnts['URL'].get():
-            url = re_sub(r'(?<=threads/).+?\.(?=\d+/$)',
-                         '',
-                         self.infoEnts['URL'].get())
+            url = re_sub(pattern=r'(?<=threads/).+?\.(?=\d+/$)',
+                         repl='',
+                         string=self.infoEnts['URL'].get())
             self.infoEnts['URL'].set(url)
         if self.getImage():
             return
         gamePath, progPaths = self.getProgPaths()
-        inf_ents = {k: v.get() for k, v in self.infoEnts.items()}
+        inf_ents = {k: v.get().strip() for k, v in self.infoEnts.items()}
         inf_pths = {'Program Path': progPaths}
         inf_dscs = {'Description': self.infoDesc.get(1.0, 'end-1c').strip()}
         cat_togs = {k: v.get() for k, v in self.catToggles.items()}
+        if not cat_togs['Completed'] and not cat_togs['Abandoned']:
+            new_ver = re_split(pattern=r' (?=\([\d/]{8}\)$)',
+                               string=inf_ents['Version'])
+            if len(new_ver) == 2:
+                pass
+            elif new_ver[0] == self.old_ver[0] and len(self.old_ver) == 2:
+                inf_ents['Version'] = f"{new_ver[0]} {self.old_ver[1]}"
+            else:
+                inf_ents['Version'] += f" ({datetime.now().strftime('%m/%d/%y')})"
         cat_lsts = {k: v.get() for k, v in self.catSelects.items()}
         tag_togs = {k: v.get() for k, v in self.tagToggles.items()}
         tag_lsts = {k: v.get() for k, v in self.tagSelects.items()}
@@ -431,9 +462,9 @@ class EditGUI(Dialog):
                      if self.game.exists() else True)
         oldVer = self.gamelib.masterlist[self.oldgame]['Info']['Version'] if oldData else ''
         newVer = newData['Info']['Version']
-        oldTitle = self.gamelib.masterlist[self.oldgame]['Info']['Title'] if oldData else ''
-        newTitle = newData['Info']['Title']
-        if pathIsNew or not oldData or oldVer != newVer or oldTitle != newTitle:
+        if pathIsNew or not oldData or oldVer != newVer:
+            oldTitle = self.gamelib.masterlist[self.oldgame]['Info']['Title'] if oldData else ''
+            newTitle = newData['Info']['Title']
             # update recent list
             oldList = 'updated' if oldData else 'added'
             curList = self.gamelib.recentlist[oldList].copy()

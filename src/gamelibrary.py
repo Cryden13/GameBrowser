@@ -1,7 +1,10 @@
-from json import load as json_load, dump as json_dump
 from tkinter.filedialog import askdirectory as Askdir
 from re import match as re_match
 from copy import deepcopy
+from json import (
+    load as json_load,
+    dump as json_dump
+)
 
 try:
     from .editlist import EditGames
@@ -81,16 +84,25 @@ class GameLib:
                 break
 
     def insertNewTags(self) -> None:
+        def alpha(d: dict) -> dict:
+            alphalst = list(d)
+            alphalst.sort()
+            alphadct = {i: d[i] for i in alphalst}
+            return alphadct
+
         doUpdate = False
         for game, data in self.masterlist.items():
             for n in set(INFO_ENT) - set(data['Info']):
-                self.masterlist[game]['Info'][n] = 0
+                data['Info'][n] = 0
+                self.masterlist[game]['Info'] = alpha(data['Info'])
                 doUpdate = True
             for n in (set(CAT_TOG) | set(CAT_SEL)) - set(data['Categories']):
-                self.masterlist[game]['Categories'][n] = 0
+                data['Categories'][n] = 0
+                self.masterlist[game]['Categories'] = alpha(data['Categories'])
                 doUpdate = True
             for n in set(TAG_TOG) - set(data['Tags']):
-                self.masterlist[game]['Tags'][n] = 0
+                data['Tags'][n] = 0
+                self.masterlist[game]['Tags'] = alpha(data['Tags'])
                 doUpdate = True
         if doUpdate:
             self.save()
@@ -159,7 +171,7 @@ class GameLib:
     def checkForNewGames(self) -> bool:
         newGames: list[Path] = list()
         for game in PATH_GAMES.iterdir():
-            if game == PATH_PROG:
+            if game == PATH_PROG or game.stem[0] == '_':
                 continue
             if not game.is_dir():
                 if game.suffix not in FILETYPES:

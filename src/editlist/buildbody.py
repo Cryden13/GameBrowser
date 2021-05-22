@@ -1,7 +1,15 @@
-from tkinter.ttk import Label, Button, Entry
-from tkinter import Text, Frame, StringVar
-from tkinter import LabelFrame as LFrame
 from commandline import openatfile
+from tkinter.ttk import (
+    Label,
+    Button,
+    Entry
+)
+from tkinter import (
+    LabelFrame as LFrame,
+    Text,
+    Frame,
+    StringVar
+)
 
 try:
     from ..constants import *

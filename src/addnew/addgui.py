@@ -1,6 +1,15 @@
-from tkinter.ttk import Label, Entry, Button, Style
+from tkinter.simpledialog import Dialog
 from winnotify import playSound
-from tkinter import Tk
+from tkinter import (
+    Frame,
+    Tk
+)
+from tkinter.ttk import (
+    Label,
+    Entry,
+    Button,
+    Style
+)
 
 try:
     from ..editlist import *
@@ -16,72 +25,77 @@ if TYPE_CHECKING:
     from ..gamelibrary import GameLib
 
 
-class AddGUI(Tk):
-    gamelib: "GameLib"
-    ct: int
-    url: Entry
-    name: Entry
-    folder: Entry
-    image: Entry
+class AddDialog(Dialog):
+    def __init__(self, parent: Tk, gamelib: "GameLib"):
+        self.parent = parent
+        self.gamelib = gamelib
+        self.updated = False
+        Dialog.__init__(self,
+                        parent=self.parent,
+                        title="Add Games")
 
-    def __init__(self):
-        Tk.__init__(self)
-        self.geometry(f'{ADD_WD}'
-                      f'x{ADD_HT}'
-                      f'+{CENTER_X - ADD_WD // 2}'
-                      f'+{CENTER_Y - ADD_HT // 2}')
-        self.title("Add Games")
-        self.attributes('-topmost', True)
-        self.configure(padx=10, pady=10)
+    def body(self, master: Frame) -> Entry:
         self.bind_class('addgame_class', '<Escape>', lambda _: self.destroy())
-        self.bind_class('addgame_class', '<Return>', lambda _: self.more())
-        self.columnconfigure(1, weight=1)
+        self.bind_class('addgame_class', '<Return>', self.more)
         Style().configure('.', font=FONT_DEF)
         self.option_add('*font', FONT_DEF)
         self.option_add('*TEntry.font', FONT_MD)
         self.option_add('*TCombobox.font', FONT_MD)
-        self.update_idletasks()
+        self.configure(padx=(PAD * 4),
+                       pady=(PAD * 3))
 
-    def start_main(self, gamelib: "GameLib") -> None:
-        self.gamelib = gamelib
+        master.pack(ipady=PAD)
+        master.columnconfigure(1, weight=1)
+        self.bodyfrm = master
+
         self.ct = int()
         self.url = self.labelEntry("Site URL:")
         self.name = self.labelEntry("Game name:")
         self.folder = self.labelEntry("Game folder:")
         self.image = self.labelEntry("Image name:")
+        return self.url
 
-        exitBtn = Button(master=self,
+    def buttonbox(self) -> None:
+        btnfrm = Frame(master=self)
+        btnfrm.pack()
+        kw = dict(row=0,
+                  padx=PAD)
+        # close btn
+        exitBtn = Button(master=btnfrm,
                          text="Close (Esc)",
                          command=self.destroy)
-        exitBtn.place(anchor='se',
-                      relx=0.25,
-                      rely=0.95)
-        saveBtn = Button(master=self,
+        exitBtn.grid(column=0,
+                     **kw)
+        # save btn
+        saveBtn = Button(master=btnfrm,
                          text="Save for Later",
                          command=self.save)
-        saveBtn.place(anchor='s',
-                      relx=0.5,
-                      rely=0.95)
-        moreBtn = Button(master=self,
+        saveBtn.grid(column=1,
+                     **kw)
+        # add info btn
+        moreBtn = Button(master=btnfrm,
                          text="Add Info (Enter)",
                          command=self.more)
-        moreBtn.place(anchor='sw',
-                      relx=0.75,
-                      rely=0.95)
+        moreBtn.grid(column=2,
+                     **kw)
         self.retag()
-        self.url.focus()
+        self.update_idletasks()
+        win_x = CENTER_X - self.winfo_width() // 2
+        win_y = CENTER_Y - self.winfo_height() // 2
+        self.after_idle(self.geometry, f'+{win_x}+{win_y}')
 
     def labelEntry(self, txt: str) -> Entry:
-        lbl = Label(self,
+        lbl = Label(master=self.bodyfrm,
                     text=txt)
         lbl.grid(column=0,
                  row=self.ct,
-                 pady=10,
+                 pady=PAD,
                  sticky='e')
-        ent = Entry(self)
+        ent = Entry(master=self.bodyfrm,
+                    width=50)
         ent.grid(column=1,
                  row=self.ct,
-                 pady=10,
+                 pady=PAD,
                  sticky='ew')
         self.ct += 1
         return ent
@@ -111,6 +125,7 @@ class AddGUI(Tk):
         self.url.delete(0, 'end')
         self.url.focus()
         playSound('Beep')
+        self.updated = True
 
     def more(self) -> None:
         if self.getInfo():
@@ -119,12 +134,25 @@ class AddGUI(Tk):
                         gamelib=self.gamelib,
                         allGames=[Path(self.folder.get()).resolve()],
                         adding=True)
-        if not res:
+        if res:
+            self.clearInfo()
+        else:
             self.save()
-        self.clearInfo()
 
     def save(self) -> None:
         if self.getInfo():
             return
         self.gamelib.saveNew()
         self.clearInfo()
+
+
+class AddGUI(Tk):
+    def __init__(self):
+        Tk.__init__(self)
+        self.overrideredirect(True)
+        self.attributes('-topmost', True)
+        self.withdraw()
+
+    def start_main(self, gamelib: "GameLib") -> None:
+        AddDialog(self, gamelib)
+        self.destroy()

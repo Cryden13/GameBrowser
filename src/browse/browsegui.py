@@ -1,16 +1,32 @@
-from tkinter import Tk, Toplevel, Frame, Canvas, Label, Text, StringVar, IntVar, Event
-from tkinter import LabelFrame as LFrame
-from tkinter.ttk import Style, Button, Notebook, Combobox
 from scrolledframe import ScrolledFrame as SFrame
 from changecolor import lighten
 from os import startfile
 from time import time
+from tkinter import (
+    LabelFrame as LFrame,
+    Tk,
+    Toplevel,
+    Frame,
+    Canvas,
+    Label,
+    Text,
+    StringVar,
+    IntVar,
+    Event
+)
+from tkinter.ttk import (
+    Style,
+    Button,
+    Notebook,
+    Combobox
+)
 
 try:
     from ..editlist import EditGames
     from .lineitem import LineItem
     from ..subframe import SubFrm
     from ..constants import *
+    from ..addnew.addgui import AddDialog
 except ImportError:
     from subprocess import run
     from pathlib import Path
@@ -76,7 +92,7 @@ class BrowseGUI(Tk):
 #   / _  / /_/ // // /__/ // /
 #  /____/\____/___/____/____/
 
-    def start_main(self, gamelib) -> None:
+    def start_main(self, gamelib: "GameLib") -> None:
         # init vars
         self.gamelib = gamelib
         bg = self.winfo_rgb(self.cget('background'))
@@ -94,14 +110,20 @@ class BrowseGUI(Tk):
                                            updated=dict(),
                                            added=dict(),
                                            browse=dict())
-        # add elements
-        chkBtn = Button(master=self,
+        # add buttons
+        lbtnfrm = Frame(master=self)
+        lbtnfrm.place(anchor='sw',
+                      relx=0,
+                      x=PAD,
+                      y=SEARCH_HT)
+        addBtn = Button(master=lbtnfrm,
+                        text="Add a new game",
+                        command=self.addNew)
+        addBtn.grid()
+        chkBtn = Button(master=lbtnfrm,
                         text="Check for new games",
                         command=self.checkForNew)
-        chkBtn.place(anchor='sw',
-                     relx=0,
-                     x=PAD,
-                     y=SEARCH_HT)
+        chkBtn.grid()
         rfrshBtn = Button(master=self,
                           text="Refresh",
                           command=self.redrawAll)
@@ -109,6 +131,7 @@ class BrowseGUI(Tk):
                        relx=0.5,
                        x=(SEARCH_WD // 2 + PAD),
                        y=SEARCH_HT)
+        # build UI
         self.createSearch()
         self.createDisplay()
         self.redrawAll("Loading")
@@ -446,15 +469,23 @@ class BrowseGUI(Tk):
                 self.gamePointers[updateGame][key] = info
             self.redrawUpdated()
 
+    def updateGames(self):
+        if self.curSearch:
+            self.clearSearch("Reloading")
+        self.showLabel("Reloading")
+        self.redrawDisplay()
+        self.redrawAdded()
+        self.showDisplay()
+
+    def addNew(self) -> None:
+        res = AddDialog(self, self.gamelib)
+        if res.updated:
+            self.updateGames()
+
     def checkForNew(self) -> None:
         updateGames = self.gamelib.checkForNewGames()
         if updateGames:
-            if self.curSearch:
-                self.clearSearch("Reloading")
-            self.showLabel("Reloading")
-            self.redrawDisplay()
-            self.redrawAdded()
-            self.showDisplay()
+            self.updateGames()
 
 #     ___________   ___  _______ __
 #    / __/ __/ _ | / _ \/ ___/ // /

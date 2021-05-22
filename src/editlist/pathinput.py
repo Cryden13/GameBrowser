@@ -1,8 +1,14 @@
 from scrolledframe import ScrolledFrame as SFrame
-from tkinter.ttk import Entry, Button, Style
-from tkinter import LabelFrame as LFrame
 from changecolor import invert
-from tkinter import Frame
+from tkinter.ttk import (
+    Entry,
+    Button,
+    Style
+)
+from tkinter import (
+    LabelFrame as LFrame,
+    Frame
+)
 
 try:
     from .pathclear import clearPathInput

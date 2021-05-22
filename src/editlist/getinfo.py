@@ -1,8 +1,10 @@
-from re import (findall as re_findall,
-                sub as re_sub)
 from bs4 import BeautifulSoup as Html
 from winnotify import playSound
 from urllib3 import PoolManager
+from re import (
+    findall as re_findall,
+    sub as re_sub
+)
 
 try:
     from ..constants import _SELECTORS as Sel
@@ -71,9 +73,9 @@ class GetF95Info(Html):
             for status in ['Completed', 'Abandoned']:
                 if status.lower() in item:
                     self.catToggles[status].set(1)
-            for c in CAT_SEL['Format']:
+            for c in CAT_SEL['Engine']:
                 if c.lower() in item:
-                    self.catSelects['Format'].set(c)
+                    self.catSelects['Engine'].set(c)
 
     def fillTags(self, rawTags: set[str]) -> None:
         if not rawTags:
@@ -102,7 +104,7 @@ class GetF95Info(Html):
         self.catSelects['Protagonist'].set(protag)
 
     def fillDescription(self, rawContent) -> None:
-        if not rawContent:
+        if not rawContent or self.infoDesc.get(1.0, 'end-1c').strip():
             return
         rawDesc = rawContent[0].find_parent().get_text()
         desc = re_sub(r'(?s)\s*(Overview:?|Spoiler.+?register now\.)\s*',

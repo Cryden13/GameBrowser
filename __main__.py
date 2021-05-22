@@ -2,8 +2,9 @@ from contextlib import redirect_stderr
 from commandline import openfile
 from traceback import format_exc
 from winnotify import playSound
-from sys import argv
+from datetime import datetime
 from os import chdir
+from sys import argv
 
 
 try:
@@ -35,9 +36,8 @@ class main:
         root.mainloop()
 
     def doLog(self):
-        from datetime import datetime
-
         errlog = PATH_PROG.joinpath('errorlog.txt')
+        errlog.unlink(missing_ok=True)
         with errlog.open('w') as log:
             with redirect_stderr(log):
                 try:

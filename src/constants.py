@@ -1,21 +1,27 @@
-from configparser import ExtendedInterpolation as ExtInterp
-from win32api import GetMonitorInfo, MonitorFromPoint
-from configparser import ConfigParser
 from tkinter import messagebox as Mbox
-from typing import (Callable as C,
-                    Optional as O,
-                    Union as U)
-from typing import TYPE_CHECKING
-from win32gui import FindWindow
 from joinwith import joinwith
 from PIL import ImageFont
 from pathlib import Path
 from re import split
+from configparser import (
+    ExtendedInterpolation as ExtInterp,
+    ConfigParser
+)
+from win32api import (
+    GetMonitorInfo,
+    MonitorFromPoint
+)
+from typing import (
+    Callable as C,
+    Optional as O,
+    Union as U,
+    TYPE_CHECKING
+)
 
 
 GAMEDATA_TYPE: dict[str, dict[str, U[str, int, Path, dict[str, Path]]]] = dict
 
-cfgfile = Path(__file__).parents[1].joinpath('config.cfg')
+cfgfile = Path(__file__).parent.with_name('config.cfg')
 cfg = ConfigParser(allow_no_value=True,
                    interpolation=ExtInterp())
 cfg.optionxform = str
@@ -52,7 +58,7 @@ COLOR_EDIT = cfg.get(sct, 'edit_button')
 # size vars
 sct = 'Sizes'
 PAD = cfg.getint(sct, 'padding')
-INFO_MAX_COLS = cfg.getint(sct, 'input_colomn_limit')
+INFO_MAX_COLS = cfg.getint(sct, 'input_column_limit')
 COMBOBOX_WD = cfg.getint(sct, 'combobox_width')
 PROGFILE_INPUT_ROWS = cfg.getint(sct, 'executables_per_game_limit')
 
@@ -62,8 +68,6 @@ MAIN_WD = cfg.getint(sct, 'browse_width')
 MAIN_HT = cfg.getint(sct, 'browse_height')
 EDIT_WD = cfg.getint(sct, 'edit_width')
 EDIT_HT = cfg.getint(sct, 'edit_height')
-ADD_WD = cfg.getint(sct, 'add_width')
-ADD_HT = cfg.getint(sct, 'add_height')
 
 # browse vars
 sct = 'Browse Window'
@@ -100,7 +104,9 @@ INFO_ENT: dict[str, U[int, list[int]]] = {
     k: int(v) for k, v in cfg.items('Info - Input')
 }
 
-CAT_TOG: list[str] = cfg.options('Categories - Toggleable')
+CAT_TOG: list[str] = [
+    t for t in cfg.options('Categories - Toggleable')
+]
 
 CAT_SEL: dict[str, list[str]] = {
     k: v.replace("''", "'").split(', ') for k, v in cfg.items('Categories - Selected')
@@ -124,11 +130,12 @@ TAG_EQU: dict[str, str] = {
 
 # screen vars
 mon: dict[str, list[int]] = GetMonitorInfo(MonitorFromPoint((0, 0)))
-SCREEN_WD = mon.get('Monitor', [*[0]*4])[2]
-SCREEN_HT = mon.get('Work', [*[0]*4])[3]
+SCREEN_WD = mon.get('Monitor', [0]*4)[2]
+SCREEN_HT = mon.get('Work', [0]*4)[3]
 CENTER_X = (SCREEN_WD // 2)
 CENTER_Y = (SCREEN_HT // 2)
 
+# cleanup
 del (ConfigParser,
      ExtInterp,
      ImageFont,
@@ -136,7 +143,6 @@ del (ConfigParser,
      joinwith,
      GetMonitorInfo,
      MonitorFromPoint,
-     FindWindow,
      cfgfile,
      cfg,
      sct,

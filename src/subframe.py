@@ -1,6 +1,12 @@
-from tkinter import IntVar, Widget
-from tkinter import LabelFrame as LFrame
-from tkinter.ttk import Checkbutton, Combobox
+from tkinter import (
+    LabelFrame as LFrame,
+    IntVar,
+    Widget
+)
+from tkinter.ttk import (
+    Checkbutton,
+    Combobox
+)
 
 try:
     from .constants import *
