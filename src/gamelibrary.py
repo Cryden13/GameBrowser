@@ -57,31 +57,31 @@ class GameLib:
         self.insertNewTags()
 
     def checkForMissingGames(self) -> None:
-        missingGames = [g for g in self.masterlist if not g.exists()]
+        missingGames = {g: g['Info']['Title']
+                        for g in self.masterlist if not g.exists()}
         ct = len(missingGames)
         notFound = ("could not be found.\n"
                     "Press <abort> to delete this item, "
                     "<retry> to search for this item, "
                     "or <ignore> to skip this check.")
-        srchTtl = "Select the main folder/file for"
-        for i, game in enumerate(missingGames):
+        for i, (fol, game) in enumerate(missingGames.items()):
             ans = Mbox.askquestion(title=f"Missing Reference ({i+1} of {ct})",
-                                   message=f"'{game.name}' {notFound}",
+                                   message=f"The folder for '{game}' {notFound}",
                                    icon='warning',
                                    type='abortretryignore')
             if ans == 'abort':
-                self.masterlist.pop(game)
+                self.masterlist.pop(fol)
                 self.save()
             elif ans == 'retry':
-                newPath: str = Askdir(title=f"{srchTtl} '{game.name}'",
+                newPath: str = Askdir(title=f"Select the main folder/file for '{fol.name}'",
                                       initialdir=PATH_GAMES,
                                       mustexist=True)
                 if newPath:
                     EditGames(parent=self.root,
                               gamelib=self,
-                              allGames={Path(newPath): game})
+                              allGames={Path(newPath): fol})
             else:
-                break
+                continue
 
     def insertNewTags(self) -> None:
         def alpha(d: dict) -> dict:
@@ -107,22 +107,22 @@ class GameLib:
         if doUpdate:
             self.save()
 
-    def alphabetize(self) -> None:
-        # create dict where {lowercase_game_title: game_folder}
-        ttl2Fol: dict[str, Path]
-        ttl2Fol = {data['Info']['Title'].lower(): fol
-                   for fol, data in self.masterlist.items()}
-        # create list of lowercase, alphabetized titles
-        alphaTtls = list(ttl2Fol)
-        alphaTtls.sort()
-        # create alphabetized list of folder names
-        alphaFols = [ttl2Fol[ttl] for ttl in alphaTtls]
-        # update the list
-        self.masterlist = {fol: self.masterlist[fol]
-                           for fol in alphaFols}
+    def alphabetize(self, data: U[dict[str], list[str]]) -> U[dict[str], list[str]]:
+        # create list of lowercase, alphabetized keys from 'data'
+        alphaLst = [s.lower() for s in data]
+        alphaLst.sort()
+        if isinstance(data, list):
+            out = alphaLst
+        elif isinstance(data, tuple):
+            out = tuple(alphaLst)
+        else:
+            out = {k: v for a in alphaLst
+                   for k, v in data.items()
+                   if k.lower() == a}
+        return out
 
     def splitByLetter(self) -> dict[str, list[Path]]:
-        # create dict 'alpha' where {'game_title_first_letter': ['game_folders']}
+        # create dict 'gameByLetter' where {'game_title_first_letter': ['game_folders']}
         gameByLetter: dict[str, list[Path]] = dict()
         for fol, data in self.masterlist.items():
             # get the first letters of the game title
@@ -190,7 +190,13 @@ class GameLib:
             return False
 
     def save(self) -> None:
-        self.alphabetize()
+        # create dict 'ttl2Fol' where {lowercase_game_title: game_folder}
+        ttl2Fol: dict[str, Path] = {data['Info']['Title']: fol
+                                    for fol, data in self.masterlist.items()}
+        alphaTtls = self.alphabetize(ttl2Fol)
+        alphaFols = [fol for fol in alphaTtls.values()]
+        self.masterlist = {fol: self.masterlist[fol]
+                           for fol in alphaFols}
         mlist = dict()
         for k in self.masterlist:
             gpath = str(k.resolve().relative_to(PATH_GAMES))

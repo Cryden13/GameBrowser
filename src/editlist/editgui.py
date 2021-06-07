@@ -70,6 +70,7 @@ class EditGUI(Dialog):
         self.updateGames = False
         self.infoEnts = dict()
         self.progPaths = dict()
+        self.old_ver = None
         if adding:
             self.newGameCt = len(allGames)
             if self.newGameCt > 1:
@@ -388,7 +389,7 @@ class EditGUI(Dialog):
                                string=inf_ents['Version'])
             if len(new_ver) == 2:
                 pass
-            elif new_ver[0] == self.old_ver[0] and len(self.old_ver) == 2:
+            elif isinstance(self.old_ver, str) and new_ver[0] == self.old_ver[0] and len(self.old_ver) == 2:
                 inf_ents['Version'] = f"{new_ver[0]} {self.old_ver[1]}"
             else:
                 inf_ents['Version'] += f" ({datetime.now().strftime('%m/%d/%y')})"
