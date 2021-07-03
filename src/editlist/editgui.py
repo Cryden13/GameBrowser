@@ -3,29 +3,34 @@ from datetime import datetime
 from subprocess import run
 from os import startfile
 from shutil import move
+
 from tkinter.filedialog import (
     askopenfilenames as Askfiles,
     askopenfilename as Askfile
 )
 from tkinter import (
     LabelFrame as LFrame,
-    Frame,
     StringVar,
-    Text
+    IntVar,
+    Canvas,
+    Frame,
+    Text,
+    Tk
 )
 from tkinter.ttk import (
-    Entry,
-    Button
+    Combobox,
+    Button,
+    Entry
 )
 from re import (
-    sub as re_sub,
-    split as re_split
+    split as re_split,
+    sub as re_sub
 )
 
 try:
-    from .getinfo import GetF95Info
-    from .buildbody import BuildBody
     from .pathclear import clearPathInput
+    from .buildbody import BuildBody
+    from .getinfo import GetF95Info
     from ..constants import *
 except ImportError:
     from pathlib import Path
@@ -34,14 +39,11 @@ except ImportError:
     raise SystemExit
 
 if TYPE_CHECKING:
-    from tkinter import Tk, IntVar, Canvas
-    from tkinter.ttk import Combobox
-
     from ..gamelibrary import GameLib
 
 
 class EditGUI(Dialog):
-    parent: "U[Tk, LFrame, Canvas]"
+    parent: U[Tk, LFrame, Canvas]
     gamelib: "GameLib"
     allGames: U[dict[Path, Path], list[Path]]
     adding: bool
@@ -49,10 +51,10 @@ class EditGUI(Dialog):
     newGameCt: int
     wintitle: str
     addPpthLine: C
-    catToggles: "dict[str, IntVar]"
-    catSelects: "dict[str, Combobox]"
-    tagToggles: "dict[str, IntVar]"
-    tagSelects: "dict[str, Combobox]"
+    catToggles: dict[str, IntVar]
+    catSelects: dict[str, Combobox]
+    tagToggles: dict[str, IntVar]
+    tagSelects: dict[str, Combobox]
     pathLbl: StringVar
     infoEnts: dict[str, StringVar]
     progPaths: dict[Frame, dict[str, U[bool, Entry, Button]]]
@@ -62,7 +64,7 @@ class EditGUI(Dialog):
     oldgame: Path
     old_ver: str
 
-    def __init__(self, parent: "U[Tk, LFrame, Canvas]", gamelib: "GameLib", allGames: U[dict, list], adding: bool):
+    def __init__(self, parent: U[Tk, LFrame, Canvas], gamelib: "GameLib", allGames: U[dict, list], adding: bool):
         self.parent = parent
         self.gamelib = gamelib
         self.allGames = allGames
@@ -85,7 +87,7 @@ class EditGUI(Dialog):
                         title=title)
 
     @classmethod
-    def EditGames(cls, parent: "U[Tk, LFrame, Canvas]", gamelib: "GameLib", allGames: U[dict, list], adding: bool = False) -> U[bool, Path]:
+    def EditGames(cls, parent: U[Tk, LFrame, Canvas], gamelib: "GameLib", allGames: U[dict, list], adding: bool = False) -> U[bool, Path]:
         res = cls(parent, gamelib, allGames, adding)
         return res.updateGames
 
@@ -96,7 +98,6 @@ class EditGUI(Dialog):
 
     def body(self, master: Frame) -> Entry:
         # initialize window
-        # self.geometry(self.parent.geometry())
         self.geometry(f'{EDIT_WD}x{EDIT_HT}')
         master.pack(expand=True,
                     fill='both')
@@ -141,12 +142,10 @@ class EditGUI(Dialog):
                      sticky='' if self.adding else 'w',
                      padx=25)
 
-
 #    _______________  _  _______  ________
 #   / ___/ __/_  __/ / |/ / __/ |/_/_  __/
 #  / (_ / _/  / /   /    / _/_>  <  / /
 #  \___/___/ /_/   /_/|_/___/_/|_| /_/
-
 
     def getNext(self) -> None:
         if self.allGames:
@@ -210,7 +209,7 @@ class EditGUI(Dialog):
             self.infoEnts['URL'].set(data['url'])
             self.infoEnts['Image'].set(data['image'])
             self.searchForExe()
-            self.lookupOpenURL(open=True)
+            self.lookupURL()
         else:
             raw = self.game.stem
             spaced = re_sub(pattern=r'([a-z])([A-Z])(?=\w)',
@@ -227,20 +226,27 @@ class EditGUI(Dialog):
             self.infoEnts['Title'].set(name)
             self.searchForExe()
 
-    def lookupOpenURL(self, open: bool = False) -> None:
+    def lookupURL(self) -> None:
         url = self.infoEnts['URL'].get()
-        ver = self.infoEnts['Version'].get()
-        if open or ver or 'f95zone' not in url:
-            if url:
-                try:
-                    startfile(url)
-                except Exception:
-                    Mbox.showerror("Error", "Invalid URL")
-            else:
-                Mbox.showerror("Error", "No URL specified")
-        if 'f95zone' in url and not ver:
+        if not url:
+            Mbox.showerror("Error", "No URL specified")
+            return
+        elif 'f95zone' in url:
             GetF95Info(self.catToggles, self.catSelects, self.tagToggles,
                        self.tagSelects, self.infoEnts, self.infoDesc, url)
+        elif Mbox.askyesno(title="Retrieval Failed",
+                           message="Only F95zone links supported. Open url instead?"):
+            self.openURL()
+
+    def openURL(self) -> None:
+        url = self.infoEnts['URL'].get()
+        if not url:
+            Mbox.showerror("Error", "No URL specified")
+            return
+        try:
+            startfile(url)
+        except Exception:
+            Mbox.showerror("Error", "Invalid URL")
 
     def insertMasterlistData(self, data: GAMEDATA_TYPE = None) -> None:
         if not data:

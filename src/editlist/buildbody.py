@@ -1,4 +1,5 @@
 from commandline import openatfile
+
 from tkinter.ttk import (
     Label,
     Button,
@@ -6,15 +7,15 @@ from tkinter.ttk import (
 )
 from tkinter import (
     LabelFrame as LFrame,
-    Text,
+    StringVar,
     Frame,
-    StringVar
+    Text
 )
 
 try:
-    from ..constants import *
-    from ..subframe import SubFrm
     from .pathinput import ProgramPathInput
+    from ..subframe import SubFrm
+    from ..constants import *
 except ImportError:
     from subprocess import run
     from pathlib import Path
@@ -141,12 +142,20 @@ class BuildBody(LFrame):
                  sticky='w')
         self.gui.infoEnts[self.item] = var
         if self.item == 'URL':
-            # add url button
-            urlBtn = Button(master=self,
-                            text="Lookup/Open Webpage",
-                            command=self.gui.lookupOpenURL)
-            urlBtn.grid(column=2,
-                        row=self.curRow)
+            # add url buttons
+            urlBtnFrm = Frame(master=self)
+            urlBtnFrm.grid(column=2,
+                           row=self.curRow)
+            urlOpenBtn = Button(master=urlBtnFrm,
+                                text="Open",
+                                command=self.gui.openURL)
+            urlOpenBtn.grid(column=0,
+                            row=0)
+            urlRetrieveBtn = Button(master=urlBtnFrm,
+                                    text="Pull Data",
+                                    command=self.gui.lookupURL)
+            urlRetrieveBtn.grid(column=1,
+                                row=0)
         elif self.item == 'Image':
             # add img button
             imgBtn = Button(master=self,

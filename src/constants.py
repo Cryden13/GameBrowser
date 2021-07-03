@@ -22,8 +22,8 @@ from typing import (
 GAMEDATA_TYPE: dict[str, dict[str, U[str, int, Path, dict[str, Path]]]] = dict
 
 cfgfile = Path(__file__).parent.with_name('config.cfg')
-cfg = ConfigParser(allow_no_value=True,
-                   interpolation=ExtInterp())
+cfg = ConfigParser(interpolation=ExtInterp(),
+                   allow_no_value=True)
 cfg.optionxform = str
 cfg.read_file(open(cfgfile))
 
@@ -32,7 +32,7 @@ sct = 'Paths'
 PATH_GAMES = Path(cfg.get(sct, 'game_folder'))
 PATH_PROG = Path(cfg.get(sct, 'program_folder'))
 PATH_LIB = PATH_PROG.joinpath('lib')
-PATH_LIST = PATH_LIB.joinpath('Game List.json')
+# PATH_LIST = PATH_LIB.joinpath('Game List.json')
 PATH_NEW = PATH_LIB.joinpath('New Games.json')
 PATH_RECENT = PATH_LIB.joinpath('Recent.json')
 PATH_IMGS = PATH_LIB.joinpath('imgs')

@@ -1,4 +1,5 @@
 from tkinter.filedialog import askdirectory as Askdir
+from tkinter import messagebox as Mbox
 from re import match as re_match
 from copy import deepcopy
 from json import (
@@ -29,7 +30,16 @@ class GameLib:
     newlist: dict[Path, dict[str, str]]
 
     def __init__(self, root: "U[AddGUI, BrowseGUI, CheckGUI]"):
+        global PATH_LIST
         self.root = root
+        ans = Mbox.askyesnocancel(title="Choose Library",
+                                  message="Open games A-N?")
+        if ans:
+            PATH_LIST = PATH_LIB.joinpath('Game List 1.json')
+        elif ans == False:
+            PATH_LIST = PATH_LIB.joinpath('Game List 2.json')
+        else:
+            raise SystemExit
         # masterlist
         self.masterlist = dict()
         with PATH_LIST.open('r') as f:
@@ -57,8 +67,8 @@ class GameLib:
         self.insertNewTags()
 
     def checkForMissingGames(self) -> None:
-        missingGames = {g: g['Info']['Title']
-                        for g in self.masterlist if not g.exists()}
+        missingGames = {g: i['Info']['Title']
+                        for g, i in self.masterlist.items() if not g.exists()}
         ct = len(missingGames)
         notFound = ("could not be found.\n"
                     "Press <abort> to delete this item, "
@@ -169,6 +179,11 @@ class GameLib:
         return out
 
     def checkForNewGames(self) -> bool:
+        allgames = dict()
+        with PATH_LIB.joinpath('Game List 1.json').open('r') as f:
+            allgames.update(json_load(f))
+        with PATH_LIB.joinpath('Game List 2.json').open('r') as f:
+            allgames.update(json_load(f))
         newGames: list[Path] = list()
         for game in PATH_GAMES.iterdir():
             if game == PATH_PROG or game.stem[0] == '_':
@@ -176,7 +191,7 @@ class GameLib:
             if not game.is_dir():
                 if game.suffix not in FILETYPES:
                     continue
-            if game in self.masterlist:
+            if game in allgames:
                 continue
             newGames.append(game)
         if newGames:
@@ -190,6 +205,13 @@ class GameLib:
             return False
 
     def save(self) -> None:
+        def getRelPath(p: Path) -> str:
+            p = p.resolve()
+            if p.is_relative_to(PATH_GAMES):
+                return str(p.relative_to(PATH_GAMES))
+            else:
+                return '\\'.join([n for i, n in enumerate(p.parts) if n != PATH_GAMES.parts[i]])
+
         # create dict 'ttl2Fol' where {lowercase_game_title: game_folder}
         ttl2Fol: dict[str, Path] = {data['Info']['Title']: fol
                                     for fol, data in self.masterlist.items()}
@@ -199,14 +221,14 @@ class GameLib:
                            for fol in alphaFols}
         mlist = dict()
         for k in self.masterlist:
-            gpath = str(k.resolve().relative_to(PATH_GAMES))
+            gpath = getRelPath(k)
             data = deepcopy(self.masterlist[k])
             ppth = data['Info']['Program Path']
             if isinstance(ppth, dict):
                 for nm, pth in ppth.items():
-                    ppth[nm] = str(pth.resolve().relative_to(PATH_GAMES))
+                    ppth[nm] = getRelPath(pth)
             else:
-                ppth = str(ppth.resolve().relative_to(PATH_GAMES))
+                ppth = getRelPath(ppth)
             data['Info']['Program Path'] = ppth
             mlist[gpath] = data
         with PATH_LIST.open('w') as f:

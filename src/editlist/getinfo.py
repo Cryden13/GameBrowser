@@ -1,8 +1,17 @@
 from bs4 import BeautifulSoup as Html
-from winnotify import playSound
+from tkinter.ttk import Combobox
+from winnotify import PlaySound
 from urllib3 import PoolManager
+from bs4.element import Tag
+
+from tkinter import (
+    StringVar,
+    IntVar,
+    Text
+)
 from re import (
     findall as re_findall,
+    search as re_search,
     sub as re_sub
 )
 
@@ -16,26 +25,16 @@ except ImportError:
     run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
     raise SystemExit
 
-if TYPE_CHECKING:
-    from tkinter import IntVar, StringVar, Text
-    from tkinter.ttk import Combobox
-
-T_CT: "dict[str, IntVar]" = dict
-T_CS: "dict[str, Combobox]" = dict
-T_TT: "dict[str, IntVar]" = dict
-T_TS: "dict[str, Combobox]" = dict
-T_IE: "dict[str, StringVar]" = dict
-
 
 class GetF95Info(Html):
-    catToggles: T_CT
-    catSelects: T_CS
-    tagToggles: T_TT
-    tagSelects: T_TS
-    infoEnts: T_IE
-    infoDesc: "Text"
+    catToggles: dict[str, IntVar] = dict
+    catSelects: dict[str, Combobox] = dict
+    tagToggles: dict[str, IntVar] = dict
+    tagSelects: dict[str, Combobox] = dict
+    infoEnts: dict[str, StringVar] = dict
+    infoDesc: Text
 
-    def __init__(self, cTogs: T_CT, cSel: T_CS, tTogs: T_TT, tSel: T_TS, iEnts: T_IE, iDesc: "Text", url: str):
+    def __init__(self, cTogs: catToggles, cSel: catSelects, tTogs: tagToggles, tSel: tagSelects, iEnts: infoEnts, iDesc: Text, url: str):
         self.catToggles = cTogs
         self.catSelects = cSel
         self.tagToggles = tTogs
@@ -43,32 +42,37 @@ class GetF95Info(Html):
         self.infoEnts = iEnts
         self.infoDesc = iDesc
         pool = PoolManager()
-        raw = pool.request('GET', url).data
-        decoded = raw.decode('utf-8', errors='ignore')
-        Html.__init__(self, decoded, 'html.parser')
+        raw: bytes = pool.request(method='GET', url=url).data
+        decoded = raw.decode(encoding='utf-8', errors='ignore')
+        Html.__init__(self, markup=decoded, features='html.parser')
         self.getInfo()
 
     def getInfo(self) -> None:
         # header
-        rawHeader = self.select(Sel.title)
-        self.fillHeader(rawHeader)
+        rawHeader = self.select(selector=Sel.title, limit=1)
+        if rawHeader:
+            self.fillHeader(rawHeader[0])
         # tags
-        rawTags = {t.get_text() for t in self.select(Sel.tags)}
-        self.fillTags(rawTags)
+        rawTags = {t.get_text() for t in self.select(selector=Sel.tags)}
+        if rawTags:
+            self.fillTags(rawTags)
         # description
-        rawContent = self.select(Sel.desc)
-        self.fillDescription(rawContent)
+        if not self.infoDesc.get(1.0, 'end-1c').strip():
+            rawContent = self.select(selector=Sel.desc, limit=1)
+            if rawContent:
+                self.fillDescription(rawContent[0])
         # version
         self.fillVersion()
-        playSound('Beep')
+        PlaySound('Beep')
 
-    def fillHeader(self, rawHeader) -> None:
-        if not rawHeader:
-            return
-        header = rawHeader[0].get_text().lower()
-        headerInfo: list[str]
-        headerInfo = re_findall(r'(?<=\[).+?(?=\])',
-                                formatStr(header))
+    def fillHeader(self, rawHeader: Tag) -> None:
+        header = rawHeader.get_text().lower()
+        headerTtl = re_search(r'\]\s*([^\[\]]{3,}?)\s*(?:\[|$)',
+                              formatStr(header))
+        if headerTtl:
+            self.infoEnts['Title'].set(headerTtl.group(1))
+        headerInfo: list[str] = re_findall(r'(?<=\[).+?(?=\])',
+                                           formatStr(header))
         for item in headerInfo:
             for status in ['Completed', 'Abandoned']:
                 if status.lower() in item:
@@ -78,8 +82,6 @@ class GetF95Info(Html):
                     self.catSelects['Engine'].set(c)
 
     def fillTags(self, rawTags: set[str]) -> None:
-        if not rawTags:
-            return
         subbedTags = {v for k, v in (TAG_EQU | CAT_EQU).items()
                       if k in rawTags}
         allTags = rawTags - {*TAG_EQU, *CAT_EQU} | subbedTags
@@ -103,16 +105,15 @@ class GetF95Info(Html):
             protag = getProtagonist(allTags)
         self.catSelects['Protagonist'].set(protag)
 
-    def fillDescription(self, rawContent) -> None:
-        if not rawContent or self.infoDesc.get(1.0, 'end-1c').strip():
-            return
-        rawDesc = rawContent[0].find_parent().get_text()
+    def fillDescription(self, rawContent: Tag) -> None:
+        rawDesc = rawContent.find_parent().get_text()
         desc = re_sub(r'(?s)\s*(Overview:?|Spoiler.+?register now\.)\s*',
                       r'',
                       formatStr(rawDesc))
         self.infoDesc.insert(1.0, desc.strip())
 
     def fillVersion(self) -> None:
+        el: Tag
         for el in self.select(Sel.ver):
             if 'version' in el.get_text().lower():
                 ver = el.next_sibling.strip(' :')
