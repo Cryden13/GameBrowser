@@ -1,246 +1,170 @@
-from tkinter.filedialog import askdirectory as Askdir
-from tkinter import messagebox as Mbox
-from re import match as re_match
-from copy import deepcopy
+
 from json import (
-    load as json_load,
-    dump as json_dump
+    load as jsonLoad,
+    dump as jsonDump
+)
+from copy import deepcopy
+from typing import TYPE_CHECKING
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QFileDialog,
+    QVBoxLayout
 )
 
-try:
-    from .editlist import EditGames
-    from .constants import *
-except ImportError:
-    from subprocess import run
-    from pathlib import Path
-    pth = Path(__file__).parents[1]
-    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
-    raise SystemExit
-
+from .constants import *
+from .messageBox import Messagebox as Mbox
+from .edit import EditUI
+from .browse.lineItem import UpdateLineItems
 if TYPE_CHECKING:
-    from .addnew import AddGUI
-    from .browse import BrowseGUI
-    from .checkfornew import CheckGUI
+    from .browse.lineItem import LineItem
 
 
-class GameLib:
-    root: "U[AddGUI, BrowseGUI, CheckGUI]"
-    masterlist: dict[Path, GAMEDATA_TYPE]
-    recentlist: dict[str, list[str]]
-    newlist: dict[Path, dict[str, str]]
+class GameLibrary:
+    main_win: QMainWindow
+    # all games
+    master_list: dict[Path, GAMEDATA_TYPE]
+    # all three recent games lists
+    recent_list: dict[str, list[str]]
+    # reference dict for the QVBoxLayouts within every recent tab, where {<layout_name>: <layout>}
+    recent_tab_layouts: dict[str, QVBoxLayout]
+    # reference dict for the QVBoxLayouts within every non-recent tab, where {<layout_letters>: <layout>}
+    tab_layouts: dict[str, QVBoxLayout]
+    # reference dict for all lineitems
+    lineitem_pointers: dict[Path, list["LineItem"]]
 
-    def __init__(self, root: "U[AddGUI, BrowseGUI, CheckGUI]"):
-        global PATH_LIST
-        self.root = root
-        ans = Mbox.askyesnocancel(title="Choose Library",
-                                  message="Open games A-N?")
-        if ans:
-            PATH_LIST = PATH_LIB.joinpath('Game List 1.json')
-        elif ans == False:
-            PATH_LIST = PATH_LIB.joinpath('Game List 2.json')
-        else:
-            raise SystemExit
-        # masterlist
-        self.masterlist = dict()
+    def __init__(self, win: QMainWindow):
+        self.main_win = win
+        self.recent_tab_layouts = dict()
+        self.tab_layouts = dict()
+        self.lineitem_pointers = dict()
+        # master list
+        self.master_list = dict()
         with PATH_LIST.open('r') as f:
-            mlist: dict[str, GAMEDATA_TYPE] = json_load(f)
-        for k in list(mlist):
-            game = Path(k).resolve()
-            data = mlist.pop(k)
+            raw_list: dict[str, GAMEDATA_TYPE] = jsonLoad(f)
+        for game in list(raw_list):
+            game_pth = FPATH_GAMES.joinpath(game)
+            data = raw_list.pop(game)
             ppth = data['Info']['Program Path']
             if isinstance(ppth, dict):
-                out = dict()
-                for nm, pth in ppth.items():
-                    out[nm] = Path(pth).resolve()
+                ppth_out = {nm: game_pth.joinpath(pth)
+                            for nm, pth in ppth.items()}
             else:
-                out = Path(ppth).resolve()
-            data['Info']['Program Path'] = out
-            self.masterlist[game] = deepcopy(data)
-        # recentlist
+                ppth_out = game_pth.joinpath(ppth)
+            data['Info']['Program Path'] = ppth_out
+            self.master_list[game_pth] = deepcopy(data)
+        # recent list
         with PATH_RECENT.open('r') as f:
-            self.recentlist = json_load(f)
-        # newlist
-        with PATH_NEW.open('r') as f:
-            self.newlist = {PATH_GAMES.joinpath(k): v
-                            for k, v in json_load(f).items()}
+            self.recent_list = jsonLoad(f)
         self.checkForMissingGames()
-        self.insertNewTags()
 
-    def checkForMissingGames(self) -> None:
-        missingGames = {g: i['Info']['Title']
-                        for g, i in self.masterlist.items() if not g.exists()}
-        ct = len(missingGames)
-        notFound = ("could not be found.\n"
-                    "Press <abort> to delete this item, "
-                    "<retry> to search for this item, "
-                    "or <ignore> to skip this check.")
-        for i, (fol, game) in enumerate(missingGames.items()):
-            ans = Mbox.askquestion(title=f"Missing Reference ({i+1} of {ct})",
-                                   message=f"The folder for '{game}' {notFound}",
-                                   icon='warning',
-                                   type='abortretryignore')
-            if ans == 'abort':
-                self.masterlist.pop(fol)
+    def checkForMissingGames(self):
+        missing_games = {g: i['Info']['Title']
+                         for g, i in self.master_list.items() if not g.exists()}
+        ct = len(missing_games)
+        for i, (fol, game) in enumerate(missing_games.items()):
+            ans = Mbox.askquestion(title=f"({i+1}/{ct}) Missing Reference",
+                                   message=(f"The folder for '{game}' Could not be found.\n"
+                                            "Do you want to DELETE this item?"),
+                                   buttons=('Ok', 'Open', 'Ignore', 'Cancel'))
+            if ans == 'OK':
+                self.master_list.pop(fol)
                 self.save()
-            elif ans == 'retry':
-                newPath: str = Askdir(title=f"Select the main folder/file for '{fol.name}'",
-                                      initialdir=PATH_GAMES,
-                                      mustexist=True)
-                if newPath:
-                    EditGames(parent=self.root,
-                              gamelib=self,
-                              allGames={Path(newPath): fol})
-            else:
-                continue
-
-    def insertNewTags(self) -> None:
-        def alpha(d: dict) -> dict:
-            alphalst = list(d)
-            alphalst.sort()
-            alphadct = {i: d[i] for i in alphalst}
-            return alphadct
-
-        doUpdate = False
-        for game, data in self.masterlist.items():
-            for n in set(INFO_ENT) - set(data['Info']):
-                data['Info'][n] = 0
-                self.masterlist[game]['Info'] = alpha(data['Info'])
-                doUpdate = True
-            for n in (set(CAT_TOG) | set(CAT_SEL)) - set(data['Categories']):
-                data['Categories'][n] = 0
-                self.masterlist[game]['Categories'] = alpha(data['Categories'])
-                doUpdate = True
-            for n in set(TAG_TOG) - set(data['Tags']):
-                data['Tags'][n] = 0
-                self.masterlist[game]['Tags'] = alpha(data['Tags'])
-                doUpdate = True
-        if doUpdate:
-            self.save()
-
-    def alphabetize(self, data: U[dict[str], list[str]]) -> U[dict[str], list[str]]:
-        # create list of lowercase, alphabetized keys from 'data'
-        alphaLst = [s.lower() for s in data]
-        alphaLst.sort()
-        if isinstance(data, list):
-            out = alphaLst
-        elif isinstance(data, tuple):
-            out = tuple(alphaLst)
-        else:
-            out = {k: v for a in alphaLst
-                   for k, v in data.items()
-                   if k.lower() == a}
-        return out
-
-    def splitByLetter(self) -> dict[str, list[Path]]:
-        # create dict 'gameByLetter' where {'game_title_first_letter': ['game_folders']}
-        gameByLetter: dict[str, list[Path]] = dict()
-        for fol, data in self.masterlist.items():
-            # get the first letters of the game title
-            firstLetters = str(data['Info']['Title'][:2]).strip().capitalize()
-            if re_match(r'[^A-Za-z]', firstLetters[0]):
-                firstLetters = str('#')
-            # check if another game has already started with those letters/create new list
-            lst = list(gameByLetter.pop(firstLetters, list()))
-            lst.append(fol)
-            gameByLetter[firstLetters] = lst
-        # alphabetize the dict
-        alphaDct: dict[str, str] = {l.lower(): l for l in gameByLetter}
-        alphaLst: list[str] = list(alphaDct)
-        alphaLst.sort()
-        alpha: dict[str, list[Path]] = dict()
-        for letter in alphaLst:
-            l = alphaDct[letter]
-            alpha[l] = gameByLetter[l]
-        # create dict 'out' where {'letter_range': ['game_folders']}
-        out: dict[str, list[str]] = dict()
-        first = last = next(iter(alpha))
-        folList = list()
-        for letter, fols in alpha.items():
-            if len(folList) + len(fols) > MAX_GAMES_PER_PAGE:
-                if letter[0] != last[0]:
-                    last = last[0]
-                    if first == last:
-                        lbl = first
+            elif ans == 'Open':
+                new_path_raw: str = QFileDialog.getExistingDirectory(
+                    caption=f"Select the main folder for '{fol.name}'",
+                    directory=str(FPATH_GAMES))
+                if new_path_raw:
+                    new_path = Path(new_path_raw).resolve()
+                    if new_path.samefile(FPATH_GAMES):
+                        new_path_raw, *_ = QFileDialog.getOpenFileName(
+                            caption=f"Select the file for '{fol.name}'",
+                            directory=str(FPATH_GAMES),
+                            filter=FILETYPENAMES
+                        )
+                        if new_path_raw:
+                            new_path = Path(new_path_raw).resolve()
+                        else:
+                            continue
+                    data = self.master_list.pop(fol)
+                    ppth = data['Info']['Program Path']
+                    if isinstance(ppth, dict):
+                        ppth_out = {nm: new_path.joinpath(p.relative_to(fol))
+                                    for nm, p in ppth.items()}
                     else:
-                        lbl = f'{first}-{last}'
-                    first = letter[0]
-                else:
-                    lbl = (first if first == last
-                           else f'{first}-{last}')
-                    first = letter
-                out[lbl] = folList
-                folList = fols
+                        ppth_out = new_path.joinpath(ppth.relative_to(fol))
+                    data['Info']['Program Path'] = ppth_out
+                    self.master_list.update({new_path: data})
+                    self.save()
+            elif ans == 'Ignore':
+                continue
             else:
-                folList += fols
-            last = letter
-        lbl = (first if first == last[0]
-               else f'{first}-{last[0]}')
-        out[lbl] = folList
-        return out
+                break
 
-    def checkForNewGames(self) -> bool:
-        allgames = dict()
-        with PATH_LIB.joinpath('Game List 1.json').open('r') as f:
-            allgames.update(json_load(f))
-        with PATH_LIB.joinpath('Game List 2.json').open('r') as f:
-            allgames.update(json_load(f))
-        newGames: list[Path] = list()
-        for game in PATH_GAMES.iterdir():
-            if game == PATH_PROG or game.stem[0] == '_':
+    def checkForNewGames(self):
+        all_games = self.master_list
+        new_games: list[Path] = list()
+        for game in FPATH_GAMES.iterdir():
+            if game == FPATH_PROG or game.stem[0] == '_':
                 continue
-            if not game.is_dir():
-                if game.suffix not in FILETYPES:
+            if not game.is_dir() and game.suffix not in FILETYPES:
+                continue
+            if game in all_games:
+                continue
+            new_games.append(game)
+        if new_games:
+            for i, new_game in enumerate(new_games):
+                edit_ui = EditUI(game_lib=self, show_ignore=True)
+                edit_ui.dlg.setWindowTitle(
+                    f"Add New Game ({i+1}/{len(new_games)})")
+                edit_ui.simpleInfo(fol=new_game)
+                if edit_ui.output == 'ignore':
                     continue
-            if game in allgames:
-                continue
-            newGames.append(game)
-        if newGames:
-            return EditGames(parent=self.root,
-                             gamelib=self,
-                             allGames=newGames,
-                             adding=True)
+                elif edit_ui.output == 'cancel':
+                    break
+                else:
+                    UpdateLineItems(self, edit_ui)
         else:
             Mbox.showinfo(title="Notice",
                           message="No new games were found!")
-            return False
+
+    def alphabetize(self, data: U[dict[str], list[str], tuple[str]]) -> U[list[str], tuple[str], dict[str]]:
+        # create list of lowercase, alphabetized keys from 'data'
+        alpha_lst = sorted(list(data), key=str.casefold)
+        if isinstance(data, list):
+            out = alpha_lst
+        elif isinstance(data, tuple):
+            out = tuple(alpha_lst)
+        else:
+            out = {k: v for a in alpha_lst
+                   for k, v in data.items()
+                   if k == a}
+        return out
 
     def save(self) -> None:
-        def getRelPath(p: Path) -> str:
-            p = p.resolve()
-            if p.is_relative_to(PATH_GAMES):
-                return str(p.relative_to(PATH_GAMES))
-            else:
-                return '\\'.join([n for i, n in enumerate(p.parts) if n != PATH_GAMES.parts[i]])
-
-        # create dict 'ttl2Fol' where {lowercase_game_title: game_folder}
+        print('TRYING TO SAVE MAIN')
+        # create dict 'ttl2Fol' where {game_title: game_folder}
         ttl2Fol: dict[str, Path] = {data['Info']['Title']: fol
-                                    for fol, data in self.masterlist.items()}
+                                    for fol, data in self.master_list.items()}
         alphaTtls = self.alphabetize(ttl2Fol)
         alphaFols = [fol for fol in alphaTtls.values()]
-        self.masterlist = {fol: self.masterlist[fol]
-                           for fol in alphaFols}
-        mlist = dict()
-        for k in self.masterlist:
-            gpath = getRelPath(k)
-            data = deepcopy(self.masterlist[k])
+        self.master_list = {fol: self.master_list[fol]
+                            for fol in alphaFols}
+        raw_list = dict()
+        for game_path in self.master_list:
+            game = str(game_path.relative_to(FPATH_GAMES))
+            data = deepcopy(self.master_list[game_path])
             ppth = data['Info']['Program Path']
             if isinstance(ppth, dict):
-                for nm, pth in ppth.items():
-                    ppth[nm] = getRelPath(pth)
+                ppth_out = {nm: str(pth.relative_to(game_path))
+                            for nm, pth in ppth.items()}
             else:
-                ppth = getRelPath(ppth)
-            data['Info']['Program Path'] = ppth
-            mlist[gpath] = data
+                ppth_out = str(ppth.relative_to(game_path))
+            data['Info']['Program Path'] = ppth_out
+            raw_list[game] = data
         with PATH_LIST.open('w') as f:
-            json_dump(mlist, f, indent=4)
+            jsonDump(raw_list, f, indent=4)
 
     def saveRecent(self) -> None:
+        print('TRYING TO SAVE RECENT')
         with PATH_RECENT.open('w') as f:
-            json_dump(self.recentlist, f, indent=4)
-
-    def saveNew(self) -> None:
-        nlist = {str(k.relative_to(PATH_GAMES)): v
-                 for k, v in self.newlist.items()
-                 if k not in self.masterlist}
-        with PATH_NEW.open('w') as f:
-            json_dump(nlist, f, indent=4)
+            jsonDump(self.recent_list, f, indent=4)

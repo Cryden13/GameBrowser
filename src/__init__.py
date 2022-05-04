@@ -1,8 +1,3 @@
-from .addnew import *
-from .checkfornew import *
-from .browse import *
-from .gamelibrary import GameLib
-from .constants import *
-
-__all__ = ['AddGUI', 'CheckGUI', 'BrowseGUI',
-           'GameLib', 'PATH_GAMES', 'PATH_PROG']
+from .constants import FPATH_GAMES
+from .browse.browse import MainWindow
+from .gamelibrary import GameLibrary

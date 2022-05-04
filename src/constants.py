@@ -1,157 +1,108 @@
-from tkinter import messagebox as Mbox
-from joinwith import joinwith
-from PIL import ImageFont
+from re import split as _split
 from pathlib import Path
-from re import split
 from configparser import (
-    ExtendedInterpolation as ExtInterp,
-    ConfigParser
+    ExtendedInterpolation as _ExtInterp,
+    ConfigParser as _ConfigParser
 )
 from win32api import (
-    GetMonitorInfo,
-    MonitorFromPoint
+    GetMonitorInfo as _GetMonitorInfo,
+    MonitorFromPoint as _MonitorFromPoint
 )
 from typing import (
-    Callable as C,
-    Optional as O,
     Union as U,
-    TYPE_CHECKING
+    Optional as O
 )
 
+from joinwith import joinwith as _joinwith
 
-GAMEDATA_TYPE: dict[str, dict[str, U[str, int, Path, dict[str, Path]]]] = dict
 
-cfgfile = Path(__file__).parent.with_name('config.cfg')
-cfg = ConfigParser(interpolation=ExtInterp(),
-                   allow_no_value=True)
-cfg.optionxform = str
-cfg.read_file(open(cfgfile))
+GAMEDATA_TYPE = dict[str, dict[str, U[str, int, Path, dict[str, Path]]]]
+
+_cfgfile = Path(__file__).parent.with_name('config.cfg')
+_cfg = _ConfigParser(interpolation=_ExtInterp(),
+                     allow_no_value=True)
+_cfg.optionxform = str
+_cfg.read_file(open(_cfgfile))
 
 # path vars
-sct = 'Paths'
-PATH_GAMES = Path(cfg.get(sct, 'game_folder'))
-PATH_PROG = Path(cfg.get(sct, 'program_folder'))
-PATH_LIB = PATH_PROG.joinpath('lib')
-# PATH_LIST = PATH_LIB.joinpath('Game List.json')
-PATH_NEW = PATH_LIB.joinpath('New Games.json')
-PATH_RECENT = PATH_LIB.joinpath('Recent.json')
-PATH_IMGS = PATH_LIB.joinpath('imgs')
+_sct = 'Paths'
+FPATH_GAMES = Path(_cfg.get(_sct, 'game_folder'))
+FPATH_PROG = Path(_cfg.get(_sct, 'program_folder'))
+FPATH_LIB = FPATH_PROG.joinpath('lib')
+FPATH_IMGS = FPATH_LIB.joinpath('images')
+PATH_LIST = FPATH_LIB.joinpath('Game List.json')
+PATH_NEW = FPATH_LIB.joinpath('New Games.json')
+PATH_RECENT = FPATH_LIB.joinpath('Recent.json')
+PATH_ICON = str(FPATH_LIB.joinpath('favicon.ico'))
 
-# font vars
-sct = 'Fonts'
-FONT_DEF = cfg.get(sct, 'default').split(', ')
-FONT_SM = cfg.get(sct, 'small').split(', ')
-FONT_MD = cfg.get(sct, 'medium').split(', ')
-FONT_LG = cfg.get(sct, 'large').split(', ')
-FONT_TTL = cfg.get(sct, 'title').split(', ')
-fntpth = Path(f'C:\\Windows\\Fonts\\{FONT_DEF[0]}.ttf')
-FONT_IMG = ImageFont.truetype(font=str(fntpth if fntpth.exists()
-                                       else fntpth.with_stem('Arial')),
-                              size=int(FONT_DEF[1]) + 5)
 
-# color vars
-sct = 'Colors'
-COLOR_PLAY = cfg.get(sct, 'play_button')
-COLOR_LINK = cfg.get(sct, 'link_button')
-COLOR_EDIT = cfg.get(sct, 'edit_button')
+# windows
+_sct = 'Windows'
+MAIN_WD = _cfg.getint(_sct, 'window_width')
+MAIN_HT = _cfg.getint(_sct, 'window_height')
+EDIT_WD = _cfg.getint(_sct, 'edit_ui_width')
+EDIT_HT = _cfg.getint(_sct, 'edit_ui_height')
+RUN_MAX_WD = _cfg.getint(_sct, 'run_submenu_width')
+RUN_MAX_HT = _cfg.getint(_sct, 'run_submenu_height')
+MAX_RECENT_GAMES = _cfg.getint(_sct, 'recent_game_limit')
 
-# size vars
-sct = 'Sizes'
-PAD = cfg.getint(sct, 'padding')
-INFO_MAX_COLS = cfg.getint(sct, 'input_column_limit')
-COMBOBOX_WD = cfg.getint(sct, 'combobox_width')
-PROGFILE_INPUT_ROWS = cfg.getint(sct, 'executables_per_game_limit')
 
-# window dimensions
-sct = 'Window Dimensions'
-MAIN_WD = cfg.getint(sct, 'browse_width')
-MAIN_HT = cfg.getint(sct, 'browse_height')
-EDIT_WD = cfg.getint(sct, 'edit_width')
-EDIT_HT = cfg.getint(sct, 'edit_height')
-
-# browse vars
-sct = 'Browse Window'
-MAX_GAMES_PER_PAGE = cfg.getint(sct, 'max_games_per_page')
-MAX_RECENT_GAMES = cfg.getint(sct, 'recent_limit')
-SEARCH_WD = cfg.getint(sct, 'search_width')
-SEARCH_HT = cfg.getint(sct, 'search_height')
-RUN_MAX_HT = cfg.getint(sct, 'run_submenu_max_height')
-BTN_SIZE = cfg.getint(sct, 'tool_button_size')
-TEXTBOX_HT = cfg.getint(sct, 'lineitem_char_height')
-TEXTBOX_WD = {i: int(v) for i in 'version categories tags'.split()
-              for k, v in cfg.items(sct)
-              if k.split('_')[0] == i}
-IMG_SIZE = cfg.getint(sct, 'title_image_width')
-IMG_FADE = f"{255 - cfg.getint(sct, 'title_image_fade'):02x}"
+# colors
+_sct = 'Colors'
+TEXT_COLORS = {
+    'default': '#' + _cfg.get(_sct, 'default'),
+    'Completed': '#' + _cfg.get(_sct, 'complete'),
+    'Favorite': '#' + _cfg.get(_sct, 'favorite'),
+    'Abandoned': '#' + _cfg.get(_sct, 'abandoned')
+}
 
 
 # js selectors
 class _SELECTORS:
-    title, tags, desc, ver = [cfg.get('Javascript Selectors', k) for
-                              k in 'title tags desc ver'.split()]
+    title, tags, desc, ver = [_cfg.get('Javascript Selectors', k) for
+                              k in ['title', 'tags', 'description', 'version']]
 
 
 # reference vars
 FILETYPES: list[str] = list()
-FILETYPENAMES: list[tuple[str, str]] = [('All types (*.*)', '*')]
-for _nm, _exts in cfg.items('Executable File Types'):
-    _exts = [f'.{_ext.strip(".")}' for _ext in split(r', ?', _exts)]
-    _fexts = joinwith(_exts, '; ', '; ', '*{}')
+_ftypes: list[str] = list()
+for _nm, _exts in _cfg.items('Executable File Types'):
+    _exts = [f'.{_ext.strip(".")}' for _ext in _split(r', ?', _exts)]
+    _fexts = _joinwith(_exts, ' ', ' ', '*{}')
     FILETYPES += _exts
-    FILETYPENAMES.append((f'{_nm.title()} file ({_fexts})', _fexts))
+    _ftypes.append(f'{_nm.title()} files ({_fexts})')
+FILETYPENAMES: str = ';;'.join([*_ftypes, 'All files (*.*)'])
 
-INFO_ENT: dict[str, U[int, list[int]]] = {
-    k: int(v) for k, v in cfg.items('Info - Input')
-}
+CAT_TOG: list[str] = list()
+CAT_SEL: dict[str, list[str]] = dict()
+for _cat, _opts in _cfg.items('Categories'):
+    if _opts:
+        CAT_SEL.update({_cat: _split(r', ?', _opts)})
+    else:
+        CAT_TOG.append(_cat)
 
-CAT_TOG: list[str] = [
-    t for t in cfg.options('Categories - Toggleable')
-]
-
-CAT_SEL: dict[str, list[str]] = {
-    k: v.replace("''", "'").split(', ') for k, v in cfg.items('Categories - Selected')
-}
-
-CAT_EQU: dict[str, str] = {
-    k.lower(): v.lower() for k, v in cfg.items('Categories - Rename')
-}
-
-TAG_TOG: list[str] = [
-    t for t in cfg.options('Tags - Toggleable')
-]
-
-TAG_SEL: dict[str, list[str]] = {
-    k: v.replace("''", "'").split(', ') for k, v in cfg.items('Tags - Selected')
-}
+TAG_TOG: list[str] = list()
+TAG_SEL: dict[str, list[str]] = dict()
+for _tag, _opts in _cfg.items('Tags'):
+    if _opts:
+        TAG_SEL.update({_tag: _split(r', ?', _opts)})
+    else:
+        TAG_TOG.append(_tag)
 
 TAG_EQU: dict[str, str] = {
-    k.lower(): v.lower() for k, v in cfg.items('Tags - Rename')
+    k.lower(): v.lower() for k, v in _cfg.items('Tag Aliases')
 }
 
 # screen vars
-mon: dict[str, list[int]] = GetMonitorInfo(MonitorFromPoint((0, 0)))
-SCREEN_WD = mon.get('Monitor', [0]*4)[2]
-SCREEN_HT = mon.get('Work', [0]*4)[3]
+_mon: dict[str, list[int]] = _GetMonitorInfo(_MonitorFromPoint((0, 0)))
+SCREEN_WD = _mon.get('Monitor', [0]*4)[2]
+SCREEN_HT = _mon.get('Work', [0]*4)[3]
 CENTER_X = (SCREEN_WD // 2)
 CENTER_Y = (SCREEN_HT // 2)
-
-# cleanup
-del (ConfigParser,
-     ExtInterp,
-     ImageFont,
-     split,
-     joinwith,
-     GetMonitorInfo,
-     MonitorFromPoint,
-     cfgfile,
-     cfg,
-     sct,
-     fntpth,
-     mon)
 
 
 if __name__ == '__main__':
     from subprocess import run
     pth = Path(__file__).parents[1]
-    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
+    run(['py', '-m', pth.name], cwd=pth.parent)
     raise SystemExit

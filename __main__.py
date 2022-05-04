@@ -1,54 +1,40 @@
-from commandline import openfile
-from winnotify import PlaySound
+from pathlib import Path
 from os import chdir
-from sys import argv
 import logging
+from sys import argv
+
+from PyQt5.QtWidgets import QApplication
+
+from commandline import openfile
 
 
 try:
     from .src import *
 except ImportError:
     from subprocess import run
-    from pathlib import Path
     pth = Path(__file__).parent
-    run(['py', '-m', pth.name, 'console'], cwd=pth.parent)
+    run(['py', '-m', pth.name], cwd=pth.parent)
     raise SystemExit
 
 
-class main:
-    def __init__(self):
-        chdir(PATH_GAMES)
-        if argv[-1] == 'console':
-            self.arg = argv[-2]
-            self.run()
-        else:
-            self.arg = argv[-1]
-            self.doLog()
-
-    def run(self):
-        root = (AddGUI if self.arg == 'add'
-                else CheckGUI if self.arg == 'check'
-                else BrowseGUI)()
-        gamelib = GameLib(root)
-        root.after_idle(root.start_main, gamelib)
-        root.mainloop()
-
-    def doLog(self):
-        errlog = PATH_PROG.joinpath('errorlog.txt')
-        logging.basicConfig(filename=errlog,
-                            filemode='w',
-                            level=logging.ERROR,
-                            format='[%(asctime)s] %(levelname)s: %(module)s.%(funcName)s\n%(message)s\n',
-                            datefmt='%m/%d/%Y %I:%M:%S%p')
-        try:
-            self.run()
-        except Exception:
-            logging.exception('')
-            raise
-        finally:
-            if errlog.read_text():
-                PlaySound()
-                openfile(errlog)
+def main():
+    chdir(FPATH_GAMES)
+    errlog = Path(__file__).with_name('errorlog.txt')
+    logging.basicConfig(filename=errlog,
+                        filemode='w',
+                        level=logging.ERROR,
+                        format='[%(asctime)s] %(levelname)s: %(module)s.%(funcName)s\n%(message)s\n',
+                        datefmt='%m/%d/%Y %I:%M:%S%p')
+    try:
+        app = QApplication(argv)
+        MainWindow(app)
+    except:
+        logging.exception('')
+        raise
+    finally:
+        if errlog.read_text():
+            app.beep()
+            openfile(errlog)
 
 
 if __name__ == '__main__':
