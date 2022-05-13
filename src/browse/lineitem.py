@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QLabel,
-    QMainWindow
+    QScrollArea
 )
 from PyQt5.QtCore import (
     QPoint,
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 class _ImageLabel(QLabel):
     def __init__(self, parent: QWidget, img: str, text: str, status: str):
-        self._clr = TEXT_COLORS.get(status)
+        self._clr = TEXT_COLORS.__dict__.get(status)
         self._img = img
         self._text = txtWrap(text=text,
                              width=22)
@@ -179,6 +179,11 @@ class LineItem(Ui_LineItem):
         self.fill()
         if insert_first:
             self.parent_layout.insertWidget(0, self.widget)
+            scrollArea = self.parent_layout.parent()
+            while not isinstance(scrollArea, QScrollArea):
+                scrollArea = scrollArea.parent()
+            vbar = scrollArea.verticalScrollBar()
+            vbar.setValue(vbar.minimum())
 
     def getParentLayout(self, title: str) -> QVBoxLayout:
         l = title[0].upper()
@@ -217,7 +222,7 @@ class UpdateLineItems:
                       gpath=self.gpath,
                       vb_layout=vb_layout)
         li.parent_layout.insertWidget(0, li.widget)
-        pointers = self.game_lib.lineitem_pointers.get(
-            self.gpath, [None, None, None, None])
+        pointers = self.game_lib.lineitem_pointers.get(self.gpath,
+                                                       [None, None, None, None])
         pointers[layout_index] = li
         self.game_lib.lineitem_pointers.update({self.gpath: pointers})

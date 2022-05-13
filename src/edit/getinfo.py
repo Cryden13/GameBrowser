@@ -118,7 +118,7 @@ def formatStr(s: str) -> str:
     string = re_sub(r'\s*(\r+|\n+)\s*',
                     r'\n',
                     ''.join(s))
-    encoded = string.encode('ascii', 'ignore')
+    encoded = string.encode('utf-8', 'ignore')
     return encoded.decode().strip()
 
 

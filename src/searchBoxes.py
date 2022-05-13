@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSizePolicy
 )
+from .constants import *
 
 
 class SearchBoxes:
@@ -37,13 +38,13 @@ class SearchBoxes:
         sizePolicy.setHeightForWidth(gBox.sizePolicy().hasHeightForWidth())
         gBox.setSizePolicy(sizePolicy)
         font = QFont()
-        font.setFamily("Ebrima")
-        font.setPointSize(10)
+        font.setFamily(FONT_FAMILY)
+        font.setPointSize(FONT_SZ_DEFAULT)
         gBox.setFont(font)
         # layout
         vLayout = QVBoxLayout(gBox)
-        vLayout.setContentsMargins(3, 3, 3, 3)
-        vLayout.setSpacing(3)
+        vLayout.setContentsMargins(PAD, PAD, PAD, PAD)
+        vLayout.setSpacing(PAD)
         # comboBox
         cmbBox = QComboBox(gBox)
         for item in contents:

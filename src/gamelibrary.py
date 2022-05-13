@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 from PyQt5.QtWidgets import (
     QMainWindow,
     QFileDialog,
-    QVBoxLayout
+    QVBoxLayout,
+    QApplication
 )
 
 from .constants import *
@@ -56,6 +57,11 @@ class GameLibrary:
         with PATH_RECENT.open('r') as f:
             self.recent_list = jsonLoad(f)
         self.checkForMissingGames()
+
+#     ______  ___  ___________
+#    / __/ / / / |/ / ___/ __/
+#   / _// /_/ /    / /___\ \
+#  /_/  \____/_/|_/\___/___/
 
     def checkForMissingGames(self):
         missing_games = {g: i['Info']['Title']
@@ -126,6 +132,58 @@ class GameLibrary:
         else:
             Mbox.showinfo(title="Notice",
                           message="No new games were found!")
+
+    def verifyTags(self):
+        all_tags = sorted(TAG_TOG | TAG_SEL.keys())
+        for gdata in self.master_list.values():
+            tags = gdata['Tags']
+            for tag in tags.keys():
+                if tag not in all_tags:
+                    tags.pop(tag)
+            for tag in all_tags:
+                tags[tag] = tags.pop(tag, 0 if tag in TAG_TOG else '')
+        QApplication.beep()
+
+    def verifyExes(self):
+        errors: dict[Path, list[Path]] = dict()
+        for gpath, data in self.master_list.items():
+            ppth = data['Info']['Program Path']
+            if isinstance(ppth, dict):
+                missing = [pth for pth in ppth.values() if not pth.exists()]
+            else:
+                missing = [ppth] if not ppth.exists() else []
+            if missing:
+                errors.update({gpath: missing})
+        if errors:
+            for i, (gpath, missing) in enumerate(errors.items()):
+                ans = Mbox.askquestion(title=f"Missing/Incorrect Executables ({i+1}/{len(errors)})",
+                                       message=(f"Game: <{gpath.relative_to(FPATH_GAMES)}>\n"
+                                                f"Bad executables: <{'>, <'.join([str(m.relative_to(gpath)) for m in missing])}>\n"
+                                                "Would you like to fix this issue?"),
+                                       buttons=('Yes', 'No', 'Cancel'))
+                if ans == 'Yes':
+                    data = self.master_list[gpath]
+                    edit_ui = EditUI(game_lib=self, show_ignore=True)
+                    edit_ui.dlg.setWindowTitle(
+                        f"Fixing Game ({i+1}/{len(errors)})")
+                    edit_ui.fullInfo(gpath, data)
+                    if edit_ui.output == 'ignore':
+                        continue
+                    elif edit_ui.output == 'cancel':
+                        break
+                    else:
+                        UpdateLineItems(self, edit_ui)
+                elif ans == 'Cancel':
+                    break
+            QApplication.beep()
+        else:
+            Mbox.showinfo(title="Missing Executables",
+                          message="There were no incorrect executables found!")
+
+#     _______ _   ______
+#    / __/ _ | | / / __/
+#   _\ \/ __ | |/ / _/
+#  /___/_/ |_|___/___/
 
     def alphabetize(self, data: U[dict[str], list[str], tuple[str]]) -> U[list[str], tuple[str], dict[str]]:
         # create list of lowercase, alphabetized keys from 'data'

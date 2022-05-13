@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
 )
 
 from .ui_browse import Ui_MainWindow
+from ..messageBox import Messagebox as Mbox
 from ..searchBoxes import SearchBoxes
 from ..gamelibrary import GameLibrary
 from ..constants import *
@@ -69,7 +70,7 @@ class MainWindow(Ui_MainWindow):
                     ttl: ctg_srch.createComboBox(ttl, ['Any', *cnt]) for ttl, cnt in CAT_SEL.items()
                 },
                 'chkBox': {
-                    txt: ctg_srch.createCheckBox(txt, False) for txt in CAT_TOG
+                    txt: ctg_srch.createCheckBox(txt) for txt in CAT_TOG
                 }
             },
             'Tags': {
@@ -86,6 +87,8 @@ class MainWindow(Ui_MainWindow):
         # bind menu buttons
         self.menuAction_add.triggered.connect(self.addNew)
         self.menuAction_check.triggered.connect(self.checkForNew)
+        self.menuAction_verify_tags.triggered.connect(self.verifyTags)
+        self.menuAction_verify_exes.triggered.connect(self.verifyExes)
         # bind search btns
         self.btn_search_clear.clicked.connect(self.clearSearch)
         self.btn_search_search.clicked.connect(self.searchBrowse)
@@ -134,6 +137,18 @@ class MainWindow(Ui_MainWindow):
     def checkForNew(self):
         self.game_lib.checkForNewGames()
 
+    def verifyTags(self):
+        ans = Mbox.askquestion(title="Verify tags",
+                               message="This will add all missing tags to all games and set them to default values, while also deleting any extraneous/old tags that are no longer listed in the config.\nThis process is irreversible. Proceed?")
+        if ans == 'Yes':
+            self.game_lib.verifyTags()
+
+    def verifyExes(self):
+        ans = Mbox.askquestion(title="Verify Executables",
+                               message="This will verify that all executable files still exist at their listed locations. If not, you will be asked to rectify the errors. This process may take some time.\nProceed?")
+        if ans == 'Yes':
+            self.game_lib.verifyExes()
+
 #     ___________   ___  _______ __
 #    / __/ __/ _ | / _ \/ ___/ // /
 #   _\ \/ _// __ |/ , _/ /__/ _  /
@@ -147,8 +162,7 @@ class MainWindow(Ui_MainWindow):
                 chkBox.setCheckState(Qt.PartiallyChecked)
         self.cur_search = {'Categories': {}, 'Tags': {}}
         for lineitems in self.lineitem_pointers.values():
-            for lineitem in lineitems:
-                lineitem.widget.show()
+            lineitems[3].widget.show()
 
     def searchBrowse(self):
         categories = {
@@ -184,11 +198,11 @@ class MainWindow(Ui_MainWindow):
                     if search.items() <= data.items():
                         self.game_search.append(gpth)
                 for gpth, lineitems in self.lineitem_pointers.items():
-                    for lineitem in lineitems:
-                        if gpth in self.game_search:
-                            lineitem.widget.show()
-                        else:
-                            lineitem.widget.hide()
+                    lineitem = lineitems[3]
+                    if gpth in self.game_search:
+                        lineitem.widget.show()
+                    else:
+                        lineitem.widget.hide()
                 if self.tabWidget.currentIndex() < 3:
                     self.tabWidget.setCurrentIndex(3)
                 self.cur_search = search

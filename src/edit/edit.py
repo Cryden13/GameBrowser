@@ -1,5 +1,6 @@
 from commandline import openatfile
 from typing import TYPE_CHECKING
+from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QIcon
 from re import sub as reSub
 from subprocess import run
@@ -72,16 +73,16 @@ class EditUI(Ui_EditDialog):
         ctg_srch = SearchBoxes(self.gBox_categories, self.gLayout_categories)
         tag_srch = SearchBoxes(self.gBox_tags, self.gLayout_tags)
         self.pointer_categories_cmbBox = {
-            ttl: ctg_srch.createComboBox(ttl, ['Any', *cnt]) for ttl, cnt in CAT_SEL.items()
+            ttl: ctg_srch.createComboBox(ttl, ['', *cnt]) for ttl, cnt in CAT_SEL.items()
         }
         self.pointer_categories_chkBox = {
-            txt: ctg_srch.createCheckBox(txt) for txt in CAT_TOG
+            txt: ctg_srch.createCheckBox(txt, False) for txt in CAT_TOG
         }
         self.pointer_tags_cmbBox = {
-            ttl: tag_srch.createComboBox(ttl, ['Any', *cnt]) for ttl, cnt in TAG_SEL.items()
+            ttl: tag_srch.createComboBox(ttl, ['', *cnt]) for ttl, cnt in TAG_SEL.items()
         }
         self.pointer_tags_chkBox = {
-            txt: tag_srch.createCheckBox(txt) for txt in TAG_TOG
+            txt: tag_srch.createCheckBox(txt, False) for txt in TAG_TOG
         }
 
     def initButtons(self):
@@ -95,10 +96,12 @@ class EditUI(Ui_EditDialog):
         self.btn_image_search.clicked.connect(self.btnImgSearch)
         self.btn_progpths_remove.clicked.connect(self.btnPathsRemRow)
         self.btn_progpths_browse.clicked.connect(self.btnPathsBrowse)
+        self.btn_progpths_find.clicked.connect(self.btnPathsFind)
         self.btn_progpths_add.clicked.connect(self.btnPathsAddRow)
         self.buttonBox.clicked.connect(lambda b: self.btnDlgClicked(b))
 
     def initProgPaths(self):
+        self.label_progpths_name.hide()
         nm_field = self.pointer_program_paths[0]['name']
         nm_field.hide()
         for line in self.pointer_program_paths[1:]:
@@ -129,7 +132,7 @@ class EditUI(Ui_EditDialog):
         )
         if new_path_raw:
             new_path = Path(new_path_raw).resolve()
-            if not new_path.samefile(self.game_path):
+            if self.game_path.exists() and not new_path.samefile(self.game_path):
                 self.label_gamepath.setText(
                     str(new_path.relative_to(FPATH_GAMES)))
                 self.game_path = new_path
@@ -186,12 +189,15 @@ class EditUI(Ui_EditDialog):
         if len(shown) == 2:
             self.pointer_program_paths[0]['name'].hide()
             self.btn_progpths_remove.hide()
+            self.label_progpths_name.hide()
+            self.btn_progpths_find.show()
         if len(shown) == 30:
             self.btn_progpths_add.show()
         old_line = self.pointer_program_paths[len(shown)-1]
         old_line['lbl'].hide()
         old_line['name'].hide()
         old_line['pth'].hide()
+        self.pathsRowChange()
 
     def btnPathsAddRow(self) -> dict[str, U[QLabel, QLineEdit]]:
         shown = [line for line in self.pointer_program_paths
@@ -199,31 +205,73 @@ class EditUI(Ui_EditDialog):
         if len(shown) == 1:
             self.pointer_program_paths[0]['name'].show()
             self.btn_progpths_remove.show()
+            self.label_progpths_name.show()
+            self.btn_progpths_find.hide()
         if len(shown) == 29:
             self.btn_progpths_add.hide()
         new_line = self.pointer_program_paths[len(shown)]
         new_line['lbl'].show()
         new_line['name'].show()
         new_line['pth'].show()
+        self.pathsRowChange()
         return new_line
 
     def btnPathsBrowse(self):
-        pths, _ = QFileDialog.getOpenFileNames(
-            caption=f"Select an executable for '{self.game_path.stem}'",
+        raw_pths, _ = QFileDialog.getOpenFileNames(
+            caption=f"Select executable(s) for '{self.game_path.stem}'",
             directory=str(self.game_path),
             filter=FILETYPENAMES
         )
-        new_line = self.pointer_program_paths[len([line for line in self.pointer_program_paths
-                                                   if not line['pth'].isHidden()])-1]
-        for pth in pths:
-            pth = Path(pth).relative_to(self.game_path)
+        if raw_pths:
+            paths = [Path(pth) for pth in raw_pths]
+            self.addExes(paths)
+
+    def btnPathsFind(self):
+        def findExe(path: Path):
+            return [pth for pth in path.iterdir() if pth.suffix in FILETYPES]
+
+        if not self.game_path.is_dir():
+            Mbox.showinfo(title='Error',
+                          message=f'"{self.game_path.name}" is not a directory',
+                          errorlevel=1)
+            return
+        paths = findExe(self.game_path)
+        if not paths:
+            for subdir in self.game_path.iterdir():
+                if subdir.is_dir():
+                    paths += findExe(subdir)
+        if not paths:
+            Mbox.showinfo(title='Error',
+                          message="Couldn't find any executables",
+                          errorlevel=1)
+            return
+        else:
+            self.addExes(paths)
+
+#     ______  ___  ___________
+#    / __/ / / / |/ / ___/ __/
+#   / _// /_/ /    / /___\ \
+#  /_/  \____/_/|_/\___/___/
+
+    def pathsRowChange(self):
+        def updateScrollbar():
+            vbar = self.scrollArea.verticalScrollBar()
+            vbar.setValue(vbar.maximum())
+        QTimer.singleShot(10, updateScrollbar)
+
+    def addExes(self, exes: list[Path]):
+        shown = [line for line in self.pointer_program_paths
+                 if not line['pth'].isHidden()]
+        new_line = self.pointer_program_paths[len(shown)-1]
+        for raw_pth in exes:
+            pth = raw_pth.relative_to(self.game_path)
             name = reSub(r'(?<=[a-z])(?=[A-Z])|_',
                          r' ',
-                         pth.name).strip()
+                         pth.stem).strip()
             new_line['name'].setText(name)
             new_line['pth'].setText(str(pth))
             new_line = self.btnPathsAddRow()
-        if len(pths) != 30:
+        if len(exes) != 30:
             self.btnPathsRemRow()
 
 #     _____  _____  __  ________

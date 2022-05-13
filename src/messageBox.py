@@ -29,7 +29,7 @@ class Messagebox:
         mbox.setText(message)
         btns = 0
         for btn in buttons:
-            btns |= self._btnTable.get(btn.lower())
+            btns |= self._btnTable.get(btn.lower(), 0)
         mbox.setStandardButtons(btns)
         mbox.buttonClicked.connect(self._buttonClicked)
         mbox.exec()
@@ -44,8 +44,6 @@ class Messagebox:
 
         Parameters
         ----------
-        parent (QWidget): the parent window
-
         title (str): the messagebox window's title 
 
         message (str): the messagebox body text 
@@ -70,8 +68,6 @@ class Messagebox:
 
         Parameters
         ----------
-        parent (QWidget): the parent window
-
         title (str): the messagebox window's title 
 
         message (str): the messagebox body text 
