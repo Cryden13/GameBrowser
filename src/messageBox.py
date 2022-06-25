@@ -1,28 +1,34 @@
 from typing import Union as _U
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
-    QMessageBox as _QMessageBox,
-    QPushButton as _QPushButton
+    QDialogButtonBox,
+    QVBoxLayout,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QCheckBox,
+    QDialog,
+    QWidget
 )
 
 from .constants import PATH_ICON
 
 
 class Messagebox:
-    _btnTable = {'ok': _QMessageBox.Ok,
-                 'open': _QMessageBox.Open,
-                 'save': _QMessageBox.Save,
-                 'cancel': _QMessageBox.Cancel,
-                 'close': _QMessageBox.Close,
-                 'yes': _QMessageBox.Yes,
-                 'no': _QMessageBox.No,
-                 'abort': _QMessageBox.Abort,
-                 'retry': _QMessageBox.Retry,
-                 'ignore': _QMessageBox.Ignore}
+    _btnTable = {'ok': QMessageBox.Ok,
+                 'open': QMessageBox.Open,
+                 'save': QMessageBox.Save,
+                 'cancel': QMessageBox.Cancel,
+                 'close': QMessageBox.Close,
+                 'yes': QMessageBox.Yes,
+                 'no': QMessageBox.No,
+                 'abort': QMessageBox.Abort,
+                 'retry': QMessageBox.Retry,
+                 'ignore': QMessageBox.Ignore}
     _btntext: str = None
 
     def __init__(self, icon, title: str, message: str, buttons: tuple[str, ...]):
-        mbox = _QMessageBox()
+        mbox = QMessageBox()
         mbox.setIcon(icon)
         mbox.setWindowIcon(QIcon(PATH_ICON))
         mbox.setWindowTitle(title)
@@ -34,7 +40,7 @@ class Messagebox:
         mbox.buttonClicked.connect(self._buttonClicked)
         mbox.exec()
 
-    def _buttonClicked(self, btn: _QPushButton):
+    def _buttonClicked(self, btn: QPushButton):
         self._btntext = btn.text().strip('&')
 
     @classmethod
@@ -55,7 +61,7 @@ class Messagebox:
         --------
         str | None : the text of the pressed response, or None if the window was closed
         """
-        mbox = cls(icon=_QMessageBox.Question,
+        mbox = cls(icon=QMessageBox.Question,
                    title=title,
                    message=message,
                    buttons=buttons)
@@ -81,16 +87,58 @@ class Messagebox:
         --------
         str | None : the text of the pressed response, or None if the window was closed
         """
-        mbox = cls(icon=[_QMessageBox.Information, _QMessageBox.Warning, _QMessageBox.Critical][errorlevel],
+        mbox = cls(icon=[QMessageBox.Information, QMessageBox.Warning, QMessageBox.Critical][errorlevel],
                    title=title,
                    message=message,
                    buttons=buttons)
         return mbox._btntext
 
 
-if __name__ == '__main__':
-    from subprocess import run
-    from pathlib import Path
-    pth = Path(__file__).parents[1]
-    run(['py', '-m', pth.name], cwd=pth.parent)
-    raise SystemExit
+class SelectDialog:
+    dlg: QDialog
+    ans: list[str]
+    fields: dict[str, QCheckBox]
+
+    def __init__(self, parent: QWidget, title: str, fields: tuple[str]):
+        self.dlg = QDialog(parent)
+        self.dlg.setWindowTitle(title)
+        # set defaults
+        self.ans = list()
+        font = self.dlg.font()
+        font.setPointSize(11)
+        self.dlg.setFont(font)
+        # construct layouts
+        main_layout = QVBoxLayout(self.dlg)
+        scrl = QScrollArea(self.dlg)
+        scrl.setWidgetResizable(True)
+        contents = QWidget()
+        contents.setStyleSheet('background-color: #2d3640;')
+        scrl.setWidget(contents)
+        layout = QVBoxLayout(contents)
+        layout.setSpacing(8)
+        main_layout.addWidget(scrl)
+        # construct widgets
+        self.fields = dict()
+        for lbl in fields:
+            cbx = QCheckBox(parent=contents, text=lbl)
+            if lbl[:-3] in fields:
+                cbx.setChecked(False)
+            else:
+                cbx.setChecked(True)
+            self.fields.update({lbl: cbx})
+            layout.addWidget(cbx)
+        # construct buttonbox
+        btnbox = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        )
+        btnbox.accepted.connect(self.submit)
+        btnbox.rejected.connect(self.dlg.close)
+        btnbox.setCenterButtons(True)
+        main_layout.addWidget(btnbox)
+        # run
+        self.dlg.exec()
+
+    def submit(self):
+        self.ans = [lbl for lbl, cbx in self.fields.items()
+                    if cbx.isChecked()]
+        self.dlg.close()

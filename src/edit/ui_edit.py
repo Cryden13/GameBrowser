@@ -2,28 +2,27 @@
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QWidget,
-    QDialog,
+    QDialogButtonBox,
+    QPlainTextEdit,
     QSizePolicy,
     QVBoxLayout,
-    QGroupBox,
     QHBoxLayout,
-    QLabel,
     QPushButton,
     QFormLayout,
-    QLineEdit,
-    QFrame,
     QGridLayout,
     QScrollArea,
-    QPlainTextEdit,
-    QDialogButtonBox,
-    QApplication
+    QGroupBox,
+    QLineEdit,
+    QWidget,
+    QDialog,
+    QLabel,
+    QFrame
 )
 from PyQt5.QtCore import (
-    Qt,
+    QMetaObject,
     QSize,
     QRect,
-    QMetaObject
+    Qt
 )
 
 from ..constants import *
@@ -129,6 +128,29 @@ QPushButton {{
         self.hLayout_topPath.setStretch(0, 1)
         self.vLayout_addGame.addWidget(self.gBox_topPath)
 
+        self.gBox_url = QGroupBox(EditDialog)
+        self.gBox_url.setTitle('URL')
+        sizePolicy = QSizePolicy(
+            QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.gBox_url.sizePolicy().hasHeightForWidth())
+        self.gBox_url.setSizePolicy(sizePolicy)
+        self.gBox_url.setObjectName("gBox_url")
+
+        self.hLayout_url = QHBoxLayout(self.gBox_url)
+        self.hLayout_url.setSpacing(PAD)
+        self.hLayout_url.setObjectName("hLayout_url")
+        self.lineEdit_url = QLineEdit(self.gBox_url)
+        self.lineEdit_url.setObjectName("lineEdit_url")
+        self.hLayout_url.addWidget(self.lineEdit_url)
+        self.btn_url_open = QPushButton(self.gBox_url)
+        self.btn_url_open.setText("Open URL")
+        self.btn_url_open.setObjectName("btn_url_open")
+        self.hLayout_url.addWidget(self.btn_url_open)
+        self.vLayout_addGame.addWidget(self.gBox_url)
+
         self.gBox_info = QGroupBox(EditDialog)
         self.gBox_info.setTitle("Info")
         sizePolicy = QSizePolicy(
@@ -147,28 +169,17 @@ QPushButton {{
         self.fLayout_info.setSpacing(PAD)
         self.fLayout_info.setObjectName("fLayout_info")
 
-        self.label_url = QLabel(self.gBox_info)
-        self.label_url.setText("URL:")
-        self.label_url.setTextInteractionFlags(Qt.NoTextInteraction)
-        self.label_url.setObjectName("label_url")
-        self.fLayout_info.setWidget(
-            0, QFormLayout.LabelRole, self.label_url)
-        self.hLayout_info_url = QHBoxLayout()
-        self.hLayout_info_url.setSpacing(PAD)
-        self.hLayout_info_url.setObjectName("hLayout_info_url")
-        self.lineEdit_url = QLineEdit(self.gBox_info)
-        self.lineEdit_url.setObjectName("lineEdit_url")
-        self.hLayout_info_url.addWidget(self.lineEdit_url)
-        self.btn_url_open = QPushButton(self.gBox_info)
-        self.btn_url_open.setText("Open URL")
-        self.btn_url_open.setObjectName("btn_url_open")
-        self.hLayout_info_url.addWidget(self.btn_url_open)
         self.btn_url_pull = QPushButton(self.gBox_info)
-        self.btn_url_pull.setText("Pull Data")
+        self.btn_url_pull.setText("Auto-fill Info From URL")
+        sizePolicy = QSizePolicy(
+            QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.btn_url_pull.sizePolicy().hasHeightForWidth())
+        self.btn_url_pull.setSizePolicy(sizePolicy)
         self.btn_url_pull.setObjectName("btn_url_pull")
-        self.hLayout_info_url.addWidget(self.btn_url_pull)
-        self.fLayout_info.setLayout(
-            0, QFormLayout.FieldRole, self.hLayout_info_url)
+        self.fLayout_info.addRow(self.btn_url_pull)
 
         self.label_title = QLabel(self.gBox_info)
         self.label_title.setText("Title:")
@@ -226,21 +237,6 @@ QPushButton {{
         self.gLayout_progpths_title = QGridLayout()
         self.gLayout_progpths_title.setObjectName("gLayout_progpths_title")
 
-        self.label_progpths_num = QLabel(self.frame_progpths)
-        self.label_progpths_num.setText("#")
-        self.label_progpths_num.setMinimumSize(QSize(20, 0))
-        font = QFont()
-        font.setFamily(FONT_FAMILY)
-        font.setPointSize(FONT_SZ_DEFAULT)
-        font.setUnderline(True)
-        self.label_progpths_num.setFont(font)
-        self.label_progpths_num.setAlignment(Qt.AlignCenter)
-        self.label_progpths_num.setTextInteractionFlags(
-            Qt.NoTextInteraction)
-        self.label_progpths_num.setObjectName("label_progpths_num")
-        self.gLayout_progpths_title.addWidget(
-            self.label_progpths_num, 0, 0, 1, 1)
-
         self.label_progpths_path = QLabel(self.frame_progpths)
         self.label_progpths_path.setText("Executable Path")
         font = QFont()
@@ -271,8 +267,8 @@ QPushButton {{
 
         self.gLayout_progpths_title.setColumnStretch(1, 7)
         self.gLayout_progpths_title.setColumnStretch(2, 5)
-
         self.vLayout_progpths.addLayout(self.gLayout_progpths_title)
+
         self.scrollArea = QScrollArea(self.frame_progpths)
         self.scrollArea.setMinimumSize(QSize(0, 200))
         self.scrollArea.setWidgetResizable(True)
@@ -280,52 +276,43 @@ QPushButton {{
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 705, 606))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-        self.gLayout_progpths_scrollArea = QGridLayout(
+
+        self.vLayout_progpths_scrollArea = QVBoxLayout(
             self.scrollAreaWidgetContents)
-        self.gLayout_progpths_scrollArea.setContentsMargins(
+        self.vLayout_progpths_scrollArea.setAlignment(Qt.AlignTop)
+        self.vLayout_progpths_scrollArea.setContentsMargins(
             PAD*2, PAD*2, PAD*2, PAD*2)
-        self.gLayout_progpths_scrollArea.setHorizontalSpacing(PAD)
-        self.gLayout_progpths_scrollArea.setVerticalSpacing(PAD*2)
-        self.gLayout_progpths_scrollArea.setObjectName(
-            "gLayout_progpths_scrollArea")
-        self.gLayout_progpths_scrollArea.setRowStretch(30, 1)
+        self.vLayout_progpths_scrollArea.setSpacing(0)
+        self.vLayout_progpths_scrollArea.setObjectName(
+            "vLayout_progpths_scrollArea")
 
-        for i in range(30):
-            lbl = QLabel(self.scrollAreaWidgetContents)
-            lbl.setText(f"{i+1:02d}")
-            lbl.setObjectName(f"label_progpths_{i+1:02d}")
-            self.__dict__[f"label_progpths_{i+1:02d}"] = lbl
-            self.gLayout_progpths_scrollArea.addWidget(lbl, i, 0, 1, 1)
+        self.vLayout_progpths_scrollArea_items = QVBoxLayout()
+        self.vLayout_progpths_scrollArea_items.setContentsMargins(0, 0, 0, 0)
+        self.vLayout_progpths_scrollArea_items.setAlignment(Qt.AlignTop)
+        self.vLayout_progpths_scrollArea_items.setSpacing(PAD)
+        self.vLayout_progpths_scrollArea.setObjectName(
+            "vLayout_progpths_scrollArea_items")
+        self.vLayout_progpths_scrollArea.addLayout(
+            self.vLayout_progpths_scrollArea_items)
 
-            exe = QLineEdit(self.scrollAreaWidgetContents)
-            exe.setObjectName(f"lineEdit_progpths_exe_{i+1:02d}")
-            self.__dict__[f"lineEdit_progpths_exe_{i+1:02d}"] = exe
-            self.gLayout_progpths_scrollArea.addWidget(exe, i, 1, 1, 1)
-
-            nm = QLineEdit(self.scrollAreaWidgetContents)
-            nm.setObjectName(f"lineEdit_progpths_name_{i+1:02d}")
-            self.__dict__[f"lineEdit_progpths_name_{i+1:02d}"] = nm
-            self.gLayout_progpths_scrollArea.addWidget(nm, i, 2, 1, 1)
-
-        self.gLayout_progpths_scrollArea.setColumnStretch(1, 7)
-        self.gLayout_progpths_scrollArea.setColumnStretch(2, 5)
+        self.btn_progpths_add = QPushButton()
+        self.btn_progpths_add.setText("Add row")
+        sizePolicy = QSizePolicy(
+            QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.btn_progpths_add.sizePolicy().hasHeightForWidth())
+        self.btn_progpths_add.setSizePolicy(sizePolicy)
+        self.btn_progpths_add.setObjectName("btn_progpths_add")
+        self.vLayout_progpths_scrollArea.addWidget(self.btn_progpths_add)
 
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.vLayout_progpths.addWidget(self.scrollArea)
         self.hLayout_progpths_btns = QHBoxLayout()
         self.hLayout_progpths_btns.setContentsMargins(0, 0, -1, -1)
         self.hLayout_progpths_btns.setObjectName("hLayout_progpths_btns")
-        self.btn_progpths_remove = QPushButton(self.frame_progpths)
-        self.btn_progpths_remove.setText("Remove a row")
-        sizePolicy = QSizePolicy(
-            QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.btn_progpths_remove.sizePolicy().hasHeightForWidth())
-        self.btn_progpths_remove.setSizePolicy(sizePolicy)
-        self.btn_progpths_remove.setObjectName("btn_progpths_remove")
-        self.hLayout_progpths_btns.addWidget(self.btn_progpths_remove)
+
         self.btn_progpths_browse = QPushButton(self.frame_progpths)
         self.btn_progpths_browse.setText("Browse for exe(s)...")
         sizePolicy = QSizePolicy(
@@ -350,17 +337,6 @@ QPushButton {{
         self.btn_progpths_find.setObjectName("btn_progpths_find")
         self.hLayout_progpths_btns.addWidget(self.btn_progpths_find)
 
-        self.btn_progpths_add = QPushButton(self.frame_progpths)
-        self.btn_progpths_add.setText("Add another exe")
-        sizePolicy = QSizePolicy(
-            QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.btn_progpths_add.sizePolicy().hasHeightForWidth())
-        self.btn_progpths_add.setSizePolicy(sizePolicy)
-        self.btn_progpths_add.setObjectName("btn_progpths_add")
-        self.hLayout_progpths_btns.addWidget(self.btn_progpths_add)
         self.vLayout_progpths.addLayout(self.hLayout_progpths_btns)
         self.fLayout_info.setWidget(
             4, QFormLayout.FieldRole, self.frame_progpths)
@@ -404,16 +380,4 @@ QPushButton {{
         self.buttonBox.setObjectName("buttonBox")
         self.vLayout_addGame.addWidget(self.buttonBox)
 
-        self.buttonBox.accepted.connect(EditDialog.accept)  # type: ignore
-        self.buttonBox.rejected.connect(EditDialog.reject)  # type: ignore
         QMetaObject.connectSlotsByName(EditDialog)
-
-
-if __name__ == "__main__":
-    from sys import argv, exit
-    app = QApplication(argv)
-    EditDialog = QDialog()
-    ui = Ui_EditDialog()
-    ui.setupUi(EditDialog)
-    EditDialog.show()
-    exit(app.exec_())

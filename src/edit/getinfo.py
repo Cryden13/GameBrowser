@@ -4,10 +4,10 @@ from urllib3 import PoolManager
 from bs4.element import Tag
 
 from PyQt5.QtWidgets import (
+    QPlainTextEdit,
     QCheckBox,
     QComboBox,
-    QLineEdit,
-    QPlainTextEdit
+    QLineEdit
 )
 from re import (
     findall as re_findall,
@@ -62,7 +62,7 @@ class GetF95Info(Html):
         header = raw_header.get_text()
         header_ttl = re_search(r'\]\s*([^\[\]]{3,}?)\s*(?:\[|$)',
                                formatStr(header))
-        if header_ttl:
+        if header_ttl and not self.pointer_info['Title'].text():
             self.pointer_info['Title'].setText(header_ttl.group(1))
         header_info: list[str] = re_findall(r'(?<=\[).+?(?=\])',
                                             formatStr(header.lower()))
@@ -99,11 +99,12 @@ class GetF95Info(Html):
         self.pointer_categories_cmbBox['Protagonist'].setCurrentText(protag)
 
     def fillDescription(self, raw_content: Tag) -> None:
-        raw_desc = raw_content.find_parent().get_text()
-        desc = re_sub(r'(?s)\s*(Overview:?|Spoiler.+?register now\.)\s*',
-                      r'',
-                      formatStr(raw_desc))
-        self.pointer_description.setPlainText(desc)
+        if not self.pointer_description.toPlainText():
+            raw_desc = raw_content.find_parent().get_text()
+            desc = re_sub(r'(?s)\s*(Overview:?|Spoiler.+?register now\.)\s*',
+                          r'',
+                          formatStr(raw_desc))
+            self.pointer_description.setPlainText(desc)
 
     def fillVersion(self) -> None:
         el: Tag

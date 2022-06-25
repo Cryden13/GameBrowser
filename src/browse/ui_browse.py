@@ -292,6 +292,11 @@ QPushButton {{color: #849db8;}}""")
         self.menuAction_add.setObjectName("menuAction_add")
         self.menu_new_games.addAction(self.menuAction_add)
 
+        self.menuAction_add_bundle = QAction(
+            "Add a new game from a bundle", MainWindow)
+        self.menuAction_add_bundle.setObjectName("menuAction_add_bundle")
+        self.menu_new_games.addAction(self.menuAction_add_bundle)
+
         self.menu_verify = QMenu("Verify", self.menubar)
         self.menu_verify.setObjectName("menu_verify")
         self.menubar.addAction(self.menu_verify.menuAction())

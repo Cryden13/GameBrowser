@@ -36,7 +36,7 @@ class Ui_LineItem(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(LineItem.sizePolicy().hasHeightForWidth())
         LineItem.setSizePolicy(sizePolicy)
-        LineItem.setMinimumSize(QSize(1295, 130))
+        LineItem.setMinimumSize(QSize(1300, 130))
         font = QFont()
         font.setFamily(FONT_FAMILY)
         font.setPointSize(FONT_SZ_DEFAULT)
@@ -76,6 +76,7 @@ QLabel {{
         self.gBox_tools.setSizePolicy(sizePolicy)
         self.gBox_tools.setObjectName("gBox_tools")
         self.verticalLayout = QVBoxLayout(self.gBox_tools)
+        self.verticalLayout.setContentsMargins(PAD, PAD, PAD, PAD)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.btn_tools_play = QPushButton(self.gBox_tools)
@@ -182,8 +183,8 @@ QPushButton::hover {{
         sizePolicy.setHeightForWidth(
             self.label_version.sizePolicy().hasHeightForWidth())
         self.label_version.setSizePolicy(sizePolicy)
-        self.label_version.setMinimumSize(QSize(70, 0))
-        self.label_version.setMaximumSize(QSize(70, 16777215))
+        self.label_version.setMinimumSize(QSize(75, 0))
+        self.label_version.setMaximumSize(QSize(75, 16777215))
         self.label_version.setAlignment(
             Qt.AlignLeading | Qt.AlignLeft | Qt.AlignTop)
         self.label_version.setWordWrap(True)

@@ -6,16 +6,16 @@ from json import (
 from copy import deepcopy
 from typing import TYPE_CHECKING
 from PyQt5.QtWidgets import (
+    QApplication,
     QMainWindow,
     QFileDialog,
-    QVBoxLayout,
-    QApplication
+    QVBoxLayout
 )
 
-from .constants import *
+from .browse.lineItem import UpdateLineItems
 from .messageBox import Messagebox as Mbox
 from .edit import EditUI
-from .browse.lineItem import UpdateLineItems
+from .constants import *
 if TYPE_CHECKING:
     from .browse.lineItem import LineItem
 
@@ -30,7 +30,7 @@ class GameLibrary:
     recent_tab_layouts: dict[str, QVBoxLayout]
     # reference dict for the QVBoxLayouts within every non-recent tab, where {<layout_letters>: <layout>}
     tab_layouts: dict[str, QVBoxLayout]
-    # reference dict for all lineitems
+    # reference dict for all lineitems. [played, updated, added, alpha]
     lineitem_pointers: dict[Path, list["LineItem"]]
 
     def __init__(self, win: QMainWindow):
@@ -53,6 +53,7 @@ class GameLibrary:
                 ppth_out = game_pth.joinpath(ppth)
             data['Info']['Program Path'] = ppth_out
             self.master_list[game_pth] = deepcopy(data)
+        self.alphabetizeMaster()
         # recent list
         with PATH_RECENT.open('r') as f:
             self.recent_list = jsonLoad(f)
@@ -62,6 +63,31 @@ class GameLibrary:
 #    / __/ / / / |/ / ___/ __/
 #   / _// /_/ /    / /___\ \
 #  /_/  \____/_/|_/\___/___/
+
+    def alphabetize(self, data: U[dict[str], list[str], tuple[str]]) -> U[list[str], tuple[str], dict[str]]:
+        def alphaKey(e: str):
+            s = e[4:] if len(e) > 5 and e[:4].lower() == 'the ' else e
+            return s.casefold()
+        # create list of lowercase, alphabetized keys from 'data'
+        alpha_lst = sorted(list(data), key=alphaKey)
+        if isinstance(data, list):
+            out = alpha_lst
+        elif isinstance(data, tuple):
+            out = tuple(alpha_lst)
+        else:
+            out = {k: v for a in alpha_lst
+                   for k, v in data.items()
+                   if k == a}
+        return out
+
+    def alphabetizeMaster(self):
+        # create dict 'ttl2Fol' where {game_title: game_folder}
+        ttl2Fol: dict[str, Path] = {data['Info']['Title']: fol
+                                    for fol, data in self.master_list.items()}
+        alphaTtls = self.alphabetize(ttl2Fol)
+        alphaFols = [fol for fol in alphaTtls.values()]
+        self.master_list = {fol: self.master_list[fol]
+                            for fol in alphaFols}
 
     def checkForMissingGames(self):
         missing_games = {g: i['Info']['Title']
@@ -73,8 +99,11 @@ class GameLibrary:
                                             "Do you want to DELETE this item?"),
                                    buttons=('Ok', 'Open', 'Ignore', 'Cancel'))
             if ans == 'OK':
-                self.master_list.pop(fol)
-                self.save()
+                chk = Mbox.askquestion(title="Delete Game",
+                                       message=f"Are you sure you want to delete {game}? This is irreversible")
+                if chk == 'Yes':
+                    self.master_list.pop(fol)
+                    self.save()
             elif ans == 'Open':
                 new_path_raw: str = QFileDialog.getExistingDirectory(
                     caption=f"Select the main folder for '{fol.name}'",
@@ -101,6 +130,8 @@ class GameLibrary:
                     data['Info']['Program Path'] = ppth_out
                     self.master_list.update({new_path: data})
                     self.save()
+                    edit_ui = EditUI(game_lib=self)
+                    edit_ui.fullInfo(gpath=new_path, ginfo=data)
             elif ans == 'Ignore':
                 continue
             else:
@@ -146,7 +177,7 @@ class GameLibrary:
 
     def verifyExes(self):
         errors: dict[Path, list[Path]] = dict()
-        for gpath, data in self.master_list.items():
+        for i, (gpath, data) in enumerate(self.master_list.items()):
             ppth = data['Info']['Program Path']
             if isinstance(ppth, dict):
                 missing = [pth for pth in ppth.values() if not pth.exists()]
@@ -178,35 +209,16 @@ class GameLibrary:
             QApplication.beep()
         else:
             Mbox.showinfo(title="Missing Executables",
-                          message="There were no incorrect executables found!")
+                          message="There were no incorrect/missing executables found!")
 
 #     _______ _   ______
 #    / __/ _ | | / / __/
 #   _\ \/ __ | |/ / _/
 #  /___/_/ |_|___/___/
 
-    def alphabetize(self, data: U[dict[str], list[str], tuple[str]]) -> U[list[str], tuple[str], dict[str]]:
-        # create list of lowercase, alphabetized keys from 'data'
-        alpha_lst = sorted(list(data), key=str.casefold)
-        if isinstance(data, list):
-            out = alpha_lst
-        elif isinstance(data, tuple):
-            out = tuple(alpha_lst)
-        else:
-            out = {k: v for a in alpha_lst
-                   for k, v in data.items()
-                   if k == a}
-        return out
-
     def save(self) -> None:
         print('TRYING TO SAVE MAIN')
-        # create dict 'ttl2Fol' where {game_title: game_folder}
-        ttl2Fol: dict[str, Path] = {data['Info']['Title']: fol
-                                    for fol, data in self.master_list.items()}
-        alphaTtls = self.alphabetize(ttl2Fol)
-        alphaFols = [fol for fol in alphaTtls.values()]
-        self.master_list = {fol: self.master_list[fol]
-                            for fol in alphaFols}
+        self.alphabetizeMaster()
         raw_list = dict()
         for game_path in self.master_list:
             game = str(game_path.relative_to(FPATH_GAMES))

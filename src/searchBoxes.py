@@ -1,12 +1,14 @@
 from PyQt5.QtGui import QFont
+from math import ceil
 from PyQt5.QtWidgets import (
-    QGroupBox,
+    QSizePolicy,
     QVBoxLayout,
     QGridLayout,
+    QGroupBox,
     QComboBox,
-    QCheckBox,
-    QSizePolicy
+    QCheckBox
 )
+
 from .constants import *
 
 
@@ -16,15 +18,21 @@ class SearchBoxes:
     parent: QGroupBox
     parent_layout: QGridLayout
 
-    def __init__(self, parent: QGroupBox, parent_layout: QGridLayout):
+    def __init__(self, parent: QGroupBox, parent_layout: QGridLayout, total_count: int):
         self.parent = parent
         self.parent_layout = parent_layout
+        if total_count <= 10:
+            self.wrap_at = 10
+        elif total_count <= 20:
+            self.wrap_at = ceil(total_count / 2)
+        else:
+            self.wrap_at = ceil(total_count / 3)
         self.row = 0
         self.column = 0
 
     def _incrementColumn(self):
         self.column += 1
-        if self.column == 10:
+        if self.column == self.wrap_at:
             self.column = 0
             self.row += 1
 

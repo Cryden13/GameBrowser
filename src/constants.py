@@ -5,12 +5,12 @@ from configparser import (
     ConfigParser as _ConfigParser
 )
 from win32api import (
-    GetMonitorInfo as _GetMonitorInfo,
-    MonitorFromPoint as _MonitorFromPoint
+    MonitorFromPoint as _MonitorFromPoint,
+    GetMonitorInfo as _GetMonitorInfo
 )
 from typing import (
-    Union as U,
-    Optional as O
+    Optional as O,
+    Union as U
 )
 
 from joinwith import joinwith as _joinwith
@@ -34,7 +34,7 @@ FPATH_IMGS = FPATH_LIB.joinpath('images')
 PATH_LIST = FPATH_LIB.joinpath('Game List.json')
 PATH_NEW = FPATH_LIB.joinpath('New Games.json')
 PATH_RECENT = FPATH_LIB.joinpath('Recent.json')
-PATH_ICON = str(FPATH_LIB.joinpath('favicon.ico'))
+PATH_ICON = str(FPATH_LIB.joinpath('icon.ico'))
 
 # windows
 _sct = 'Windows'
@@ -62,7 +62,8 @@ CAT_TOG: list[str] = list()
 CAT_SEL: dict[str, list[str]] = dict()
 for _cat, _opts in _cfg.items('Categories'):
     if _opts:
-        CAT_SEL.update({_cat: _split(r', ?', _opts)})
+        CAT_SEL.update({_cat: [c.replace("''", "'").replace('""', '"')
+                               for c in _split(r', ?', _opts)]})
     else:
         CAT_TOG.append(_cat)
 
@@ -70,7 +71,8 @@ TAG_TOG: list[str] = list()
 TAG_SEL: dict[str, list[str]] = dict()
 for _tag, _opts in _cfg.items('Tags'):
     if _opts:
-        TAG_SEL.update({_tag: _split(r', ?', _opts)})
+        TAG_SEL.update({_tag: [t.replace("''", "'").replace('""', '"')
+                               for t in _split(r', ?', _opts)]})
     else:
         TAG_TOG.append(_tag)
 
@@ -109,12 +111,12 @@ FONT_SHADOW = _adv_cfg.getint(_sct, 'title_shadow')
 # executables
 FILETYPES: list[str] = list()
 _ftypes: list[str] = list()
-for _nm, _exts in _adv_cfg.items('Executable File Types'):
+for _, _exts in _adv_cfg.items('Executable File Types'):
     _exts = [f'.{_ext.strip(".")}' for _ext in _split(r', ?', _exts)]
     _fexts = _joinwith(_exts, ' ', ' ', '*{}')
     FILETYPES += _exts
-    _ftypes.append(f'{_nm.title()} files ({_fexts})')
-FILETYPENAMES: str = ';;'.join([*_ftypes, 'All files (*.*)'])
+    _ftypes.append(_fexts)
+FILETYPENAMES: str = f"Game files ({' '.join(_ftypes)});;All files (*.*)"
 
 # windows
 _sct = 'Windows'

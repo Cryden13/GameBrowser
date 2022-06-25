@@ -6,35 +6,82 @@ from re import sub as reSub
 from subprocess import run
 from os import startfile
 from PyQt5.QtWidgets import (
+    QDialogButtonBox,
+    QFileDialog,
+    QPushButton,
+    QVBoxLayout,
     QCheckBox,
     QComboBox,
-    QDialog,
-    QFileDialog,
-    QLabel,
     QLineEdit,
-    QPushButton,
-    QDialogButtonBox
+    QDialog,
+    QWidget
 )
 
 from .ui_edit import Ui_EditDialog
-from .getinfo import GetF95Info
+from .ui_progpath import Ui_ProgramPath
 from ..searchBoxes import SearchBoxes
+from .getinfo import GetF95Info
 from ..constants import *
-from ..messageBox import Messagebox as Mbox
+from ..messageBox import (
+    Messagebox as Mbox,
+    SelectDialog
+)
 
 if TYPE_CHECKING:
     from ..gamelibrary import GameLibrary
 
 
+class _EditDialog(QDialog):
+    _block_close: bool
+
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
+        self._block_close = False
+
+    def closeEvent(self, evnt):
+        if self._block_close:
+            self._block_close = False
+            evnt.ignore()
+        else:
+            QDialog.closeEvent(self, evnt)
+
+
+class _ProgLineItem(Ui_ProgramPath):
+    wgt: QWidget
+    parent_layout: QVBoxLayout
+    pointers: list
+
+    def __init__(self, parent_layout: QVBoxLayout, pointers: list, index=-1):
+        self.wgt = QWidget()
+        self.setupUi(self.wgt)
+
+        self.parent_layout = parent_layout
+        self.pointers = pointers
+
+        self.btn_add.clicked.connect(self.addRowBefore)
+        self.btn_rem.clicked.connect(self.remRow)
+
+        self.parent_layout.insertWidget(index, self.wgt)
+
+    def remRow(self):
+        self.parent_layout.removeWidget(self.wgt)
+        self.pointers.remove(self)
+        self.wgt.deleteLater()
+
+    def addRowBefore(self):
+        i = self.pointers.index(self)
+        li = _ProgLineItem(self.parent_layout, self.pointers, i)
+        self.pointers.insert(i, li)
+
+
 class EditUI(Ui_EditDialog):
-    dlg: QDialog
+    dlg: _EditDialog
     show_ignore: bool
     # cancel, update, new, or ignore
     output: str = 'cancel'
     game_lib: "GameLibrary"
     pointer_info: dict[str, QLineEdit]
-    pointer_program_paths: list[dict[str,
-                                     U[QLineEdit, QLineEdit, QPushButton]]]
+    pointer_program_paths: list[_ProgLineItem]
     pointer_categories_chkBox: dict[str, QCheckBox]
     pointer_categories_cmbBox: dict[str, QComboBox]
     pointer_tags_chkBox: dict[str, QCheckBox]
@@ -50,12 +97,11 @@ class EditUI(Ui_EditDialog):
     def __init__(self, game_lib: "GameLibrary", show_ignore: bool = False):
         self.game_lib = game_lib
         self.show_ignore = show_ignore
-        self.dlg = QDialog(self.game_lib.main_win)
+        self.dlg = _EditDialog(self.game_lib.main_win)
         self.dlg.setWindowIcon(QIcon(PATH_ICON))
         self.setupUi(self.dlg)
         self.initVars()
         self.initButtons()
-        self.initProgPaths()
 
     def initVars(self):
         self.pointer_info = {
@@ -64,14 +110,14 @@ class EditUI(Ui_EditDialog):
             'Image': self.lineEdit_image,
             'Version': self.lineEdit_version,
         }
-        self.pointer_program_paths = [
-            {'lbl': self.__dict__.get(f'label_progpths_{n:02d}'),
-             'name': self.__dict__.get(f'lineEdit_progpths_name_{n:02d}'),
-             'pth': self.__dict__.get(f'lineEdit_progpths_exe_{n:02d}')}
-            for n in range(1, 31)
-        ]
-        ctg_srch = SearchBoxes(self.gBox_categories, self.gLayout_categories)
-        tag_srch = SearchBoxes(self.gBox_tags, self.gLayout_tags)
+        self.pointer_program_paths = list()
+        self.btnPathsAddRow()
+        ctg_srch = SearchBoxes(self.gBox_categories,
+                               self.gLayout_categories,
+                               len(CAT_SEL)+len(CAT_TOG))
+        tag_srch = SearchBoxes(self.gBox_tags,
+                               self.gLayout_tags,
+                               len(TAG_SEL)+len(TAG_TOG))
         self.pointer_categories_cmbBox = {
             ttl: ctg_srch.createComboBox(ttl, ['', *cnt]) for ttl, cnt in CAT_SEL.items()
         }
@@ -94,21 +140,10 @@ class EditUI(Ui_EditDialog):
         self.btn_url_open.clicked.connect(self.btnUrlOpen)
         self.btn_url_pull.clicked.connect(self.btnUrlPull)
         self.btn_image_search.clicked.connect(self.btnImgSearch)
-        self.btn_progpths_remove.clicked.connect(self.btnPathsRemRow)
         self.btn_progpths_browse.clicked.connect(self.btnPathsBrowse)
         self.btn_progpths_find.clicked.connect(self.btnPathsFind)
         self.btn_progpths_add.clicked.connect(self.btnPathsAddRow)
         self.buttonBox.clicked.connect(lambda b: self.btnDlgClicked(b))
-
-    def initProgPaths(self):
-        self.label_progpths_name.hide()
-        nm_field = self.pointer_program_paths[0]['name']
-        nm_field.hide()
-        for line in self.pointer_program_paths[1:]:
-            line['lbl'].hide()
-            line['name'].hide()
-            line['pth'].hide()
-        self.btn_progpths_remove.hide()
 
 #     ___  __  __________________  _  ______
 #    / _ )/ / / /_  __/_  __/ __ \/ |/ / __/
@@ -121,6 +156,7 @@ class EditUI(Ui_EditDialog):
             self.trySaveInfo()
         if txt == 'Ignore':
             self.output = 'ignore'
+        self.dlg.close()
 
     def btnOpenGamePath(self):
         openatfile(self.game_path)
@@ -132,7 +168,7 @@ class EditUI(Ui_EditDialog):
         )
         if new_path_raw:
             new_path = Path(new_path_raw).resolve()
-            if self.game_path.exists() and not new_path.samefile(self.game_path):
+            if not self.game_path.exists() or not new_path.samefile(self.game_path):
                 self.label_gamepath.setText(
                     str(new_path.relative_to(FPATH_GAMES)))
                 self.game_path = new_path
@@ -165,7 +201,7 @@ class EditUI(Ui_EditDialog):
                        pt_info=self.pointer_info,
                        pt_desc=self.textEdit_description,
                        url=url)
-        elif Mbox.askquestion(title="Retrieval failed",
+        elif Mbox.askquestion(title="Retrieval Failed",
                               message="Only F95zone links supported. Would you like to open the link instead?") == 'Yes':
             startfile(url)
 
@@ -183,38 +219,15 @@ class EditUI(Ui_EditDialog):
                 img_txt = str(img_path)
             self.lineEdit_image.setText(img_txt)
 
-    def btnPathsRemRow(self):
-        shown = [line for line in self.pointer_program_paths
-                 if not line['pth'].isHidden()]
-        if len(shown) == 2:
-            self.pointer_program_paths[0]['name'].hide()
-            self.btn_progpths_remove.hide()
-            self.label_progpths_name.hide()
-            self.btn_progpths_find.show()
-        if len(shown) == 30:
-            self.btn_progpths_add.show()
-        old_line = self.pointer_program_paths[len(shown)-1]
-        old_line['lbl'].hide()
-        old_line['name'].hide()
-        old_line['pth'].hide()
-        self.pathsRowChange()
-
-    def btnPathsAddRow(self) -> dict[str, U[QLabel, QLineEdit]]:
-        shown = [line for line in self.pointer_program_paths
-                 if not line['pth'].isHidden()]
-        if len(shown) == 1:
-            self.pointer_program_paths[0]['name'].show()
-            self.btn_progpths_remove.show()
-            self.label_progpths_name.show()
-            self.btn_progpths_find.hide()
-        if len(shown) == 29:
-            self.btn_progpths_add.hide()
-        new_line = self.pointer_program_paths[len(shown)]
-        new_line['lbl'].show()
-        new_line['name'].show()
-        new_line['pth'].show()
-        self.pathsRowChange()
-        return new_line
+    def btnPathsAddRow(self) -> _ProgLineItem:
+        def updateScrollbar():
+            vbar = self.scrollArea.verticalScrollBar()
+            vbar.setValue(vbar.maximum())
+        li = _ProgLineItem(self.vLayout_progpths_scrollArea_items,
+                           self.pointer_program_paths)
+        self.pointer_program_paths.append(li)
+        QTimer.singleShot(10, updateScrollbar)
+        return li
 
     def btnPathsBrowse(self):
         raw_pths, _ = QFileDialog.getOpenFileNames(
@@ -231,10 +244,15 @@ class EditUI(Ui_EditDialog):
             return [pth for pth in path.iterdir() if pth.suffix in FILETYPES]
 
         if not self.game_path.is_dir():
-            Mbox.showinfo(title='Error',
-                          message=f'"{self.game_path.name}" is not a directory',
-                          errorlevel=1)
-            return
+            if self.game_path.suffix in FILETYPES:
+                paths = [self.game_path]
+                self.addExes(paths)
+                return
+            else:
+                Mbox.showinfo(title='Error',
+                              message=f'"{self.game_path.name}" is not a directory',
+                              errorlevel=1)
+                return
         paths = findExe(self.game_path)
         if not paths:
             for subdir in self.game_path.iterdir():
@@ -245,34 +263,46 @@ class EditUI(Ui_EditDialog):
                           message="Couldn't find any executables",
                           errorlevel=1)
             return
-        else:
+        elif len(paths) == 1:
             self.addExes(paths)
+        else:
+            fields = [str(pth.relative_to(self.game_path)) for pth in paths]
+            res = SelectDialog(parent=self.dlg,
+                               title='Pick executables',
+                               fields=fields).ans
+            if res:
+                paths = [self.game_path.joinpath(pth)
+                         for pth in res]
+                self.addExes(paths)
 
 #     ______  ___  ___________
 #    / __/ / / / |/ / ___/ __/
 #   / _// /_/ /    / /___\ \
 #  /_/  \____/_/|_/\___/___/
 
-    def pathsRowChange(self):
-        def updateScrollbar():
-            vbar = self.scrollArea.verticalScrollBar()
-            vbar.setValue(vbar.maximum())
-        QTimer.singleShot(10, updateScrollbar)
-
     def addExes(self, exes: list[Path]):
-        shown = [line for line in self.pointer_program_paths
-                 if not line['pth'].isHidden()]
-        new_line = self.pointer_program_paths[len(shown)-1]
+        if len(self.pointer_program_paths):
+            new_line = self.pointer_program_paths[-1]
+        else:
+            new_line = self.btnPathsAddRow()
         for raw_pth in exes:
             pth = raw_pth.relative_to(self.game_path)
+            new_line.lineEdit_exe.setText(str(pth))
             name = reSub(r'(?<=[a-z])(?=[A-Z])|_',
                          r' ',
                          pth.stem).strip()
-            new_line['name'].setText(name)
-            new_line['pth'].setText(str(pth))
+            new_line.lineEdit_name.setText(name)
             new_line = self.btnPathsAddRow()
-        if len(exes) != 30:
-            self.btnPathsRemRow()
+        self.pointer_program_paths[-1].remRow()
+
+    def askMissingInfo(self, missing_pts: list[str]):
+        ans = Mbox.askquestion(title='Missing input',
+                               message=f'The following fields are blank:\n{",".join(missing_pts)}\nWould you like to continue anyway?')
+        if ans == 'No':
+            self.dlg._block_close = True
+            return True
+        else:
+            return False
 
 #     _____  _____  __  ________
 #    /  _/ |/ / _ \/ / / /_  __/
@@ -305,15 +335,14 @@ class EditUI(Ui_EditDialog):
         # program paths
         ppths = ginfo['Info']['Program Path']
         if isinstance(ppths, Path):
-            self.lineEdit_progpths_exe_01.setText(
+            self.pointer_program_paths[0].lineEdit_exe.setText(
                 str(ppths.relative_to(self.game_path)))
         else:
-            for i, (nm, pth) in enumerate(ppths.items()):
-                line = self.pointer_program_paths[i]
-                line['name'].setText(nm)
-                line['pth'].setText(str(pth.relative_to(self.game_path)))
-                self.btnPathsAddRow()
-            self.btnPathsRemRow()
+            for nm, pth in ppths.items():
+                line = self.btnPathsAddRow()
+                line.lineEdit_name.setText(nm)
+                line.lineEdit_exe.setText(str(pth.relative_to(self.game_path)))
+            QTimer.singleShot(10, self.pointer_program_paths[0].remRow)
         # categories
         for k, field in self.pointer_categories_cmbBox.items():
             val = ginfo['Categories'][k]
@@ -340,6 +369,8 @@ class EditUI(Ui_EditDialog):
         info_game_path, info_paths = self.getInputsPaths()
         categories = self.getInputsCategories()
         tags = self.getInputsTags()
+        if None in (info_input, info_game_path, info_paths, categories, tags):
+            return
         # check if data is new
         new_data = {
             'Info': (info_input | info_paths),
@@ -400,9 +431,15 @@ class EditUI(Ui_EditDialog):
             data['URL'] = url
         data['Image'] = self.moveResizeImage(data['Image'])
         data['Description'] = self.textEdit_description.toPlainText()
+        missing_pts = [k for k, v in data.items() if k != 'Image' and not v]
+        if missing_pts:
+            stop = self.askMissingInfo(missing_pts)
+            if stop:
+                return None
         return data
 
-    def moveResizeImage(self, img: str) -> str:
+    @staticmethod
+    def moveResizeImage(img: str) -> str:
         if not img:
             return ''
         img_path = Path(img)
@@ -419,20 +456,27 @@ class EditUI(Ui_EditDialog):
 
     def getInputsPaths(self) -> tuple[Path, U[Path, dict[str, Path]]]:
         top_path = FPATH_GAMES.joinpath(self.label_gamepath.text())
-        data = {line['name'].text(): top_path.joinpath(line['pth'].text())
+        data = {line.lineEdit_name.text(): top_path.joinpath(line.lineEdit_exe.text())
                 for line in self.pointer_program_paths
-                if not line['pth'].isHidden()
-                and line['pth'].text()}
+                if line.lineEdit_exe.text()}
         if len(data) == 1:
             data = list(data.values())[0]
+            if not data:
+                stop = self.askMissingInfo(['Program Path(s)'])
+                if stop:
+                    return None, None
         return top_path, {'Program Path': data}
 
-    @staticmethod
-    def getInputs(chkBox_pointer: dict[str, QCheckBox], cmbBox_pointer: dict[str, QComboBox]) -> dict[str, U[str, int]]:
+    def getInputs(self, chkBox_pointer: dict[str, QCheckBox], cmbBox_pointer: dict[str, QComboBox]) -> dict[str, U[str, int]]:
         chkBox = {k: int(v.isChecked())
                   for k, v in chkBox_pointer.items()}
         cmbBox = {k: v.currentText()
                   for k, v in cmbBox_pointer.items()}
+        missing_pts = [k for k, v in cmbBox.items() if not v]
+        if missing_pts:
+            stop = self.askMissingInfo(missing_pts)
+            if stop:
+                return None
         data = (chkBox | cmbBox)
         return data
 

@@ -96,15 +96,9 @@ class LineItem(Ui_LineItem):
         self.btn_tools_edit.clicked.connect(self.editGame)
 
     def fill(self):
+        ctg = self.ginfo['Categories']
         # title
-        if self.ginfo['Categories']['Favorite']:
-            stat = 'Favorite'
-        elif self.ginfo['Categories']['Completed']:
-            stat = 'Completed'
-        elif self.ginfo['Categories']['Abandoned']:
-            stat = 'Abandoned'
-        else:
-            stat = 'default'
+        ttlclr = 'Favorite' if ctg['Favorite'] else 'default'
         img = self.ginfo['Info']['Image']
         if img:
             img = FPATH_IMGS.joinpath(img)
@@ -116,10 +110,13 @@ class LineItem(Ui_LineItem):
         self.img_lbl = _ImageLabel(parent=self.widget,
                                    img=str(img),
                                    text=txt,
-                                   status=stat)
+                                   status=ttlclr)
         self.vLayout_title.addWidget(self.img_lbl)
         # version
+        ver = 'Completed' if ctg['Completed'] else 'Abandoned' if ctg['Abandoned'] else 'default'
+        verclr = TEXT_COLORS.__dict__.get(ver)
         self.label_version.setText(self.ginfo['Info']['Version'])
+        self.label_version.setStyleSheet(f'QLabel {{color: {verclr};}}')
         # categories
         ctgs = [f"{ctg}: {self.ginfo['Categories'][ctg]}"
                 for ctg in ['Status', 'Genre', 'Engine', 'Art', 'Protagonist']]
@@ -144,7 +141,7 @@ class LineItem(Ui_LineItem):
 
     def startGame(self, exe: Path):
         try:
-            startfile(exe)
+            startfile(filepath=exe, cwd=exe.parent)
             # update recent
             cur_list = self.game_lib.recent_list['played'].copy()
             if self.ginfo['Info']['Title'] in cur_list:
@@ -155,6 +152,14 @@ class LineItem(Ui_LineItem):
             if cur_list != self.game_lib.recent_list['played']:
                 self.game_lib.recent_list['played'] = cur_list
                 self.game_lib.saveRecent()
+            # update recent tab
+            vb_layout = self.game_lib.recent_tab_layouts['played']
+            li = self.game_lib.lineitem_pointers.get(self.gpath)[0]
+            if li == None:
+                li = LineItem(game_lib=self.game_lib,
+                              gpath=self.gpath,
+                              vb_layout=vb_layout)
+            vb_layout.insertWidget(0, li.widget)
         except:
             ans = Mbox.askquestion(title='Error',
                                    message=(f"Couldn't start '{self.ginfo['Info']['Title']}'\n"
@@ -186,7 +191,10 @@ class LineItem(Ui_LineItem):
             vbar.setValue(vbar.minimum())
 
     def getParentLayout(self, title: str) -> QVBoxLayout:
-        l = title[0].upper()
+        if len(title) > 5 and title[:4].lower() == 'the ':
+            l = title[4].upper()
+        else:
+            l = title[0].upper()
         for letters, layout in self.game_lib.tab_layouts.items():
             if l in letters:
                 return layout
@@ -212,7 +220,7 @@ class UpdateLineItems:
             for i, lineitem in enumerate(lineitem_pointers):
                 if lineitem != None:
                     lineitem.update(new_gpath=self.gpath,
-                                    insert_first=(i % 2))
+                                    insert_first=(i == 1))
             if lineitem_pointers[1] == None:
                 self.addNewLineitem(layout_index=1,
                                     vb_layout=self.game_lib.recent_tab_layouts['updated'])

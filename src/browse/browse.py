@@ -1,12 +1,14 @@
+from configparser import ConfigParser
+from shutil import move as moveFol
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
-    QCheckBox,
-    QComboBox,
+    QFileDialog,
     QMainWindow,
     QVBoxLayout,
-    QFileDialog
+    QCheckBox,
+    QComboBox
 )
 
 from .ui_browse import Ui_MainWindow
@@ -16,8 +18,8 @@ from ..gamelibrary import GameLibrary
 from ..constants import *
 from ..edit import EditUI
 from .lineItem import (
-    LineItem,
-    UpdateLineItems
+    UpdateLineItems,
+    LineItem
 )
 
 
@@ -62,8 +64,11 @@ class MainWindow(Ui_MainWindow):
                                  if var[:12] == 'vLayout_tab_' and var[12] != 'r'})
         self.lineitem_pointers = self.game_lib.lineitem_pointers
         ctg_srch = SearchBoxes(self.gBox_search_categories,
-                               self.gLayout_search_categories)
-        tag_srch = SearchBoxes(self.gBox_search_tags, self.gLayout_search_tags)
+                               self.gLayout_search_categories,
+                               len(CAT_SEL)+len(CAT_TOG))
+        tag_srch = SearchBoxes(self.gBox_search_tags,
+                               self.gLayout_search_tags,
+                               len(TAG_SEL)+len(TAG_TOG))
         self.search_inputs = {
             'Categories': {
                 'cmbBox': {
@@ -86,6 +91,7 @@ class MainWindow(Ui_MainWindow):
         self.game_search = list(self.game_lib.master_list.keys())
         # bind menu buttons
         self.menuAction_add.triggered.connect(self.addNew)
+        self.menuAction_add_bundle.triggered.connect(self.addBundle)
         self.menuAction_check.triggered.connect(self.checkForNew)
         self.menuAction_verify_tags.triggered.connect(self.verifyTags)
         self.menuAction_verify_exes.triggered.connect(self.verifyExes)
@@ -134,6 +140,48 @@ class MainWindow(Ui_MainWindow):
             if edit_ui.output != 'cancel':
                 UpdateLineItems(self.game_lib, edit_ui)
 
+    def addBundle(self):
+        bundle_path_raw: str = QFileDialog.getExistingDirectory(
+            caption="Select the bundle",
+            directory=str(Path.home().joinpath('Desktop'))
+        )
+        if bundle_path_raw:
+            bundle_path = Path(bundle_path_raw).resolve()
+            gname = bundle_path.name
+            raw_fol, raw_url, raw_img = None, None, None
+            for f in bundle_path.iterdir():
+                if f.is_dir() or (f.suffix in FILETYPES and f.suffix != '.url'):
+                    raw_fol = f
+                elif f.suffix == '.url':
+                    raw_url = f
+                elif f.suffix in ['.jpg', '.jpeg', '.png', '.gif']:
+                    raw_img = f
+            if len(list(bundle_path.iterdir())) != 3 or None in [raw_fol, raw_url, raw_img]:
+                Mbox.showinfo(title="Bad Bundle",
+                              message=f"The directory '{gname}' is not a proper bundle. A bundle must have an image file, a url file, and a game folder or file. Please try again",
+                              errorlevel=1)
+                return
+            # move folder
+            gfol = FPATH_GAMES.joinpath(raw_fol.name)
+            moveFol(raw_fol, gfol)
+            # get url
+            cfg = ConfigParser()
+            cfg.read_file(open(raw_url))
+            gurl = cfg.get('InternetShortcut', 'url')
+            raw_url.unlink()
+            # move image
+            gimg = EditUI.moveResizeImage(str(raw_img))
+            # delete bundle
+            bundle_path.rmdir()
+            # input into editui
+            edit_ui = EditUI(game_lib=self.game_lib)
+            edit_ui.simpleInfo(fol=gfol,
+                               url=gurl,
+                               name=gname,
+                               img=gimg)
+            if edit_ui.output != 'cancel':
+                UpdateLineItems(self.game_lib, edit_ui)
+
     def checkForNew(self):
         self.game_lib.checkForNewGames()
 
@@ -145,7 +193,7 @@ class MainWindow(Ui_MainWindow):
 
     def verifyExes(self):
         ans = Mbox.askquestion(title="Verify Executables",
-                               message="This will verify that all executable files still exist at their listed locations. If not, you will be asked to rectify the errors. This process may take some time.\nProceed?")
+                               message="This will verify that all executable files still exist at their listed locations. If not, you will be asked to rectify the errors.\nProceed?")
         if ans == 'Yes':
             self.game_lib.verifyExes()
 

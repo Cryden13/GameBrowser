@@ -7,7 +7,7 @@ from re import (
     sub as re_sub
 )
 
-url = "https://f95zone.to/threads/tales-of-androgyny-v0-3-20-0-majalis.1643/"
+url = "https://f95zone.to/threads/1643/"
 
 
 class SEL:

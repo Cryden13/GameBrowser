@@ -1,20 +1,13 @@
 from pathlib import Path
 from os import chdir
-import logging
 from sys import argv
+import logging
 
 from PyQt5.QtWidgets import QApplication
 
 from commandline import openfile
 
-
-try:
-    from .src import *
-except ImportError:
-    from subprocess import run
-    pth = Path(__file__).parent
-    run(['py', '-m', pth.name], cwd=pth.parent)
-    raise SystemExit
+from .src import *
 
 
 def main():
