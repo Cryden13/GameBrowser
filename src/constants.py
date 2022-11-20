@@ -4,10 +4,6 @@ from configparser import (
     ExtendedInterpolation as _ExtInterp,
     ConfigParser as _ConfigParser
 )
-from win32api import (
-    MonitorFromPoint as _MonitorFromPoint,
-    GetMonitorInfo as _GetMonitorInfo
-)
 from typing import (
     Optional as O,
     Union as U
@@ -90,9 +86,8 @@ _adv_cfg = _ConfigParser(interpolation=_ExtInterp(),
 _adv_cfg.optionxform = str
 _adv_cfg.read_file(open(_adv_cfgfile))
 
+
 # js selectors
-
-
 class _SELECTORS:
     title, tags, desc, ver = [_adv_cfg.get('Javascript Selectors', k) for
                               k in ['title', 'tags', 'description', 'version']]
@@ -125,19 +120,21 @@ SEARCH_MIN_WD, SEARCH_MIN_HT = [int(n) for n in
 PAD = _adv_cfg.getint(_sct, 'spacing')
 GBOX_POSITION = _adv_cfg.get(_sct, 'groupbox_header_position')
 GBOX_OFFSET = _adv_cfg.get(_sct, 'groupbox_header_offset')
-_mon_from_pt = tuple(int(n) for n in
-                     _adv_cfg.get(_sct, 'monitor_from_pt').split(', '))
 
 
-# screen vars
-_mon: dict[str, list[int]] = _GetMonitorInfo(_MonitorFromPoint(_mon_from_pt))
-SCREEN_WD = _mon.get('Monitor', [0]*4)[2]
-SCREEN_HT = _mon.get('Work', [0]*4)[3]
-CENTER_X = (SCREEN_WD // 2)
-CENTER_Y = (SCREEN_HT // 2)
+# lineitem
+_sct = 'LineItem'
+LI_HEIGHT = _adv_cfg.getint(_sct, 'height')
+LI_WIDTH = MAIN_WD - PAD*2 - 34
+LI_BTN = _adv_cfg.getint(_sct, 'btn_size')
+LI_TITLE = _adv_cfg.getint(_sct, 'title_wd')
+LI_VERSION = _adv_cfg.getint(_sct, 'version_wd')
+LI_CATEGORY = _adv_cfg.getint(_sct, 'category_wd')
+LI_TAGS = _adv_cfg.getint(_sct, 'tags_wd')
+
 
 if __name__ == '__main__':
-    _all = globals().copy()
-    for k, v in _all.items():
+    consts = globals().copy()
+    for k, v in consts.items():
         if k[0] != '_':
             print(f'{k} = {v}')

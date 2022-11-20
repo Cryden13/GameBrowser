@@ -1,15 +1,13 @@
-# -*- coding: utf-8 -*-
-
 from PyQt5.QtWidgets import (
-    QWidget,
     QSizePolicy,
     QHBoxLayout,
     QPushButton,
-    QLineEdit
+    QLineEdit,
+    QWidget
 )
 from PyQt5.QtCore import (
-    QSize,
-    QMetaObject
+    QMetaObject,
+    QSize
 )
 
 from ..constants import *

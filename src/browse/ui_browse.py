@@ -1,28 +1,25 @@
-# -*- coding: utf-8 -*-
-
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QMainWindow,
-    QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QSpacerItem,
     QSizePolicy,
-    QGroupBox,
     QGridLayout,
     QPushButton,
-    QTabWidget,
     QScrollArea,
+    QTabWidget,
+    QGroupBox,
     QMenuBar,
-    QMenu,
+    QWidget,
     QAction,
-    QApplication
+    QMenu
 )
 from PyQt5.QtCore import (
+    QMetaObject,
     QSize,
-    Qt,
     QRect,
-    QMetaObject
+    Qt
 )
 
 from ..constants import *
@@ -288,12 +285,12 @@ QPushButton {{color: #849db8;}}""")
         self.menuAction_check.setObjectName("menuAction_check")
         self.menu_new_games.addAction(self.menuAction_check)
 
-        self.menuAction_add = QAction("Add a new game", MainWindow)
+        self.menuAction_add = QAction("Manually Add", MainWindow)
         self.menuAction_add.setObjectName("menuAction_add")
         self.menu_new_games.addAction(self.menuAction_add)
 
         self.menuAction_add_bundle = QAction(
-            "Add a new game from a bundle", MainWindow)
+            "Add a bundle", MainWindow)
         self.menuAction_add_bundle.setObjectName("menuAction_add_bundle")
         self.menu_new_games.addAction(self.menuAction_add_bundle)
 
@@ -342,13 +339,3 @@ QPushButton {{color: #849db8;}}""")
         hLayout.addWidget(scrollArea)
         self.tabWidget.addTab(tab, tab_title)
         return (tab, hLayout, scrollArea, scrollAreaContents, vLayout)
-
-
-if __name__ == "__main__":
-    from sys import argv, exit
-    app = QApplication(argv)
-    MainWindow = QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    exit(app.exec_())

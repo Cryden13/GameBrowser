@@ -1,24 +1,21 @@
-# -*- coding: utf-8 -*-
-
 from PyQt5.QtWidgets import (
-    QWidget,
+    QPlainTextEdit,
     QSizePolicy,
     QHBoxLayout,
-    QGroupBox,
     QVBoxLayout,
     QPushButton,
-    QLabel,
-    QPlainTextEdit,
-    QApplication
+    QGroupBox,
+    QWidget,
+    QLabel
 )
 from PyQt5.QtCore import (
-    Qt,
+    QMetaObject,
     QSize,
-    QMetaObject
+    Qt
 )
 from PyQt5.QtGui import (
-    QFont,
-    QCursor
+    QCursor,
+    QFont
 )
 
 from ..constants import *
@@ -29,14 +26,15 @@ class Ui_LineItem(object):
         LineItem.setWindowTitle("Line Item")
         LineItem.setObjectName("LineItem")
         LineItem.setWindowModality(Qt.WindowModal)
-        LineItem.resize(1295, 130)
+        LineItem.resize(LI_WIDTH, LI_HEIGHT)
         sizePolicy = QSizePolicy(
             QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(LineItem.sizePolicy().hasHeightForWidth())
         LineItem.setSizePolicy(sizePolicy)
-        LineItem.setMinimumSize(QSize(1300, 130))
+        LineItem.setMinimumSize(QSize(LI_WIDTH, LI_HEIGHT))
+        LineItem.setMaximumSize(QSize(LI_WIDTH, LI_HEIGHT))
         font = QFont()
         font.setFamily(FONT_FAMILY)
         font.setPointSize(FONT_SZ_DEFAULT)
@@ -81,8 +79,8 @@ QLabel {{
 
         self.btn_tools_play = QPushButton(self.gBox_tools)
         self.btn_tools_play.setText("▶")
-        self.btn_tools_play.setMinimumSize(QSize(30, 30))
-        self.btn_tools_play.setMaximumSize(QSize(30, 30))
+        self.btn_tools_play.setMinimumSize(QSize(LI_BTN, LI_BTN))
+        self.btn_tools_play.setMaximumSize(QSize(LI_BTN, LI_BTN))
         self.btn_tools_play.setCursor(
             QCursor(Qt.PointingHandCursor))
         self.btn_tools_play.setStyleSheet(f"""\
@@ -103,8 +101,8 @@ QPushButton::hover {{
 
         self.btn_tools_web = QPushButton(self.gBox_tools)
         self.btn_tools_web.setText("www")
-        self.btn_tools_web.setMinimumSize(QSize(30, 30))
-        self.btn_tools_web.setMaximumSize(QSize(30, 30))
+        self.btn_tools_web.setMinimumSize(QSize(LI_BTN, LI_BTN))
+        self.btn_tools_web.setMaximumSize(QSize(LI_BTN, LI_BTN))
         self.btn_tools_web.setCursor(
             QCursor(Qt.PointingHandCursor))
         self.btn_tools_web.setStyleSheet(f"""\
@@ -123,8 +121,8 @@ QPushButton::hover {{
 
         self.btn_tools_edit = QPushButton(self.gBox_tools)
         self.btn_tools_edit.setText("edit")
-        self.btn_tools_edit.setMinimumSize(QSize(30, 30))
-        self.btn_tools_edit.setMaximumSize(QSize(30, 30))
+        self.btn_tools_edit.setMinimumSize(QSize(LI_BTN, LI_BTN))
+        self.btn_tools_edit.setMaximumSize(QSize(LI_BTN, LI_BTN))
         self.btn_tools_edit.setCursor(
             QCursor(Qt.PointingHandCursor))
         self.btn_tools_edit.setStyleSheet(f"""\
@@ -152,7 +150,7 @@ QPushButton::hover {{
         sizePolicy.setHeightForWidth(
             self.gBox_title.sizePolicy().hasHeightForWidth())
         self.gBox_title.setSizePolicy(sizePolicy)
-        self.gBox_title.setMinimumSize(QSize(203, 0))
+        self.gBox_title.setMinimumSize(QSize(LI_TITLE, 0))
         self.gBox_title.setObjectName("gBox_title")
         self.vLayout_title = QVBoxLayout(self.gBox_title)
         self.vLayout_title.setContentsMargins(PAD, 0, PAD, 0)
@@ -183,8 +181,8 @@ QPushButton::hover {{
         sizePolicy.setHeightForWidth(
             self.label_version.sizePolicy().hasHeightForWidth())
         self.label_version.setSizePolicy(sizePolicy)
-        self.label_version.setMinimumSize(QSize(75, 0))
-        self.label_version.setMaximumSize(QSize(75, 16777215))
+        self.label_version.setMinimumSize(QSize(LI_VERSION, 0))
+        self.label_version.setMaximumSize(QSize(LI_VERSION, 16777215))
         self.label_version.setAlignment(
             Qt.AlignLeading | Qt.AlignLeft | Qt.AlignTop)
         self.label_version.setWordWrap(True)
@@ -217,8 +215,8 @@ QPushButton::hover {{
         sizePolicy.setHeightForWidth(
             self.label_category.sizePolicy().hasHeightForWidth())
         self.label_category.setSizePolicy(sizePolicy)
-        self.label_category.setMinimumSize(QSize(150, 0))
-        self.label_category.setMaximumSize(QSize(150, 16777215))
+        self.label_category.setMinimumSize(QSize(LI_CATEGORY, 0))
+        self.label_category.setMaximumSize(QSize(LI_CATEGORY, 16777215))
         self.label_category.setAlignment(
             Qt.AlignLeading | Qt.AlignLeft | Qt.AlignTop)
         self.label_category.setWordWrap(True)
@@ -251,8 +249,8 @@ QPushButton::hover {{
         sizePolicy.setHeightForWidth(
             self.label_tags.sizePolicy().hasHeightForWidth())
         self.label_tags.setSizePolicy(sizePolicy)
-        self.label_tags.setMinimumSize(QSize(200, 0))
-        self.label_tags.setMaximumSize(QSize(200, 16777215))
+        self.label_tags.setMinimumSize(QSize(LI_TAGS, 0))
+        self.label_tags.setMaximumSize(QSize(LI_TAGS, 16777215))
         self.label_tags.setAlignment(
             Qt.AlignLeading | Qt.AlignLeft | Qt.AlignTop)
         self.label_tags.setWordWrap(True)
@@ -278,7 +276,6 @@ QPushButton::hover {{
         sizePolicy.setHeightForWidth(
             self.textEdit_description.sizePolicy().hasHeightForWidth())
         self.textEdit_description.setSizePolicy(sizePolicy)
-        self.textEdit_description.setMaximumSize(QSize(16777215, 111))
         font = QFont()
         font.setFamily(FONT_FAMILY)
         font.setPointSize(FONT_SZ_DEFAULT)
@@ -289,13 +286,3 @@ QPushButton::hover {{
         self.hLayout_lineitem.addWidget(self.gBox_description)
 
         QMetaObject.connectSlotsByName(LineItem)
-
-
-if __name__ == "__main__":
-    from sys import argv, exit
-    app = QApplication(argv)
-    LineItem = QWidget()
-    ui = Ui_LineItem()
-    ui.setupUi(LineItem)
-    LineItem.show()
-    exit(app.exec_())

@@ -1,0 +1,113 @@
+from configparser import ConfigParser
+from shutil import move as moveFol
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMainWindow,
+    QVBoxLayout,
+    QCheckBox,
+    QComboBox
+)
+
+from .ui_browse import Ui_MainWindow
+from ..messageBox import Messagebox as Mbox
+from ..searchBoxes import SearchBoxes
+from ..gamelibrary_v3 import GameLibrary
+from ..constants import *
+from ..edit import EditUI
+from .lineItem import (
+    UpdateLineItems,
+    LineItem
+)
+
+
+class MainWindow(Ui_MainWindow):
+    win: QMainWindow
+    game_lib: GameLibrary
+    # reference dict for the QVBoxLayouts within every recent tab, where {<layout_name>: <layout>}
+    recent_tab_layouts: dict[str, QVBoxLayout]
+    # reference dict for the QVBoxLayouts within every non-recent tab, where {<layout_letters>: <layout>}
+    tab_layouts: dict[str, QVBoxLayout]
+    # all search options, formatted as {Categories: {<type>: {<cat>: <input>}}, Tags: {<type>: {<tag>: <input>}}}
+    search_inputs: dict[str, dict[str, dict[str, U[QComboBox, QCheckBox]]]]
+    # current search terms, formatted as {Categories: {<cat>: <val>}, Tags: {<tag>: <val>}}
+    cur_search: dict[str, dict[str, U[str, int]]]
+    # currently searched for games
+    game_search: list[Path]
+    # reference dict for all lineitems
+    lineitem_pointers: dict[Path, list[LineItem]]
+
+    def __init__(self, app: QApplication):
+        self.win = QMainWindow()
+        self.win.setWindowIcon(QIcon(PATH_ICON))
+        self.setupUi(self.win)
+        self.win.show()
+        self.startMain()
+        app.exec()
+
+#     ___  __  ________   ___
+#    / _ )/ / / /  _/ /  / _ \
+#   / _  / /_/ // // /__/ // /
+#  /____/\____/___/____/____/
+
+    def startMain(self):
+        # init vars
+        self.game_lib = GameLibrary(self.win)
+        self.recent_tab_layouts = self.game_lib.recent_tab_layouts
+        self.recent_tab_layouts.update({'played': self.vLayout_tab_rPlayed,
+                                        'updated': self.vLayout_tab_rUpdated,
+                                        'added': self.vLayout_tab_rAdded})
+        self.tab_layouts = self.game_lib.tab_layouts
+        self.tab_layouts.update({var[12:]: layout for var, layout in self.__dict__.items()
+                                 if var[:12] == 'vLayout_tab_' and var[12] != 'r'})
+        self.lineitem_pointers = self.game_lib.lineitem_pointers
+        ctg_srch = SearchBoxes(self.gBox_search_categories,
+                               self.gLayout_search_categories,
+                               len(CAT_SEL)+len(CAT_TOG))
+        tag_srch = SearchBoxes(self.gBox_search_tags,
+                               self.gLayout_search_tags,
+                               len(TAG_SEL)+len(TAG_TOG))
+        self.search_inputs = {
+            'Categories': {
+                'cmbBox': {
+                    ttl: ctg_srch.createComboBox(ttl, ['Any', *cnt]) for ttl, cnt in CAT_SEL.items()
+                },
+                'chkBox': {
+                    txt: ctg_srch.createCheckBox(txt) for txt in CAT_TOG
+                }
+            },
+            'Tags': {
+                'cmbBox': {
+                    ttl: tag_srch.createComboBox(ttl, ['Any', *cnt]) for ttl, cnt in TAG_SEL.items()
+                },
+                'chkBox': {
+                    txt: tag_srch.createCheckBox(txt) for txt in TAG_TOG
+                }
+            }
+        }
+        self.clearSearch()
+        self.game_search = [g.Dir for g in self.game_lib.master_list]
+        # bind menu buttons
+        self.menuAction_add.triggered.connect(self.addNew)
+        self.menuAction_add_bundle.triggered.connect(self.addBundle)
+        self.menuAction_check.triggered.connect(self.checkForNew)
+        self.menuAction_verify_tags.triggered.connect(self.verifyTags)
+        self.menuAction_verify_exes.triggered.connect(self.verifyExes)
+        # bind search btns
+        self.btn_search_clear.clicked.connect(self.clearSearch)
+        self.btn_search_search.clicked.connect(self.searchBrowse)
+        # build ui
+        self.createLibrary()
+        self.createRecents()
+
+    def createLibrary(self):
+        for game in self.game_lib.master_list:
+            li = LineItem(game_lib=self.game_lib,
+                          game=game)
+            pointers = [None, None, None, li]
+            self.lineitem_pointers.update({game: pointers})
+
+    def createRecents(self):
+        pass

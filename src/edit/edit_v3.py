@@ -28,7 +28,10 @@ from ..messageBox import (
 )
 
 if TYPE_CHECKING:
-    from ..gamelibrary import GameLibrary
+    from ..gamelibrary_v3 import (
+        Game as GameClass,
+        GameLibrary
+    )
 
 
 class _EditDialog(QDialog):
@@ -77,7 +80,7 @@ class _ProgLineItem(Ui_ProgramPath):
 class EditUI(Ui_EditDialog):
     dlg: _EditDialog
     show_ignore: bool
-    # cancel, update, change, new, or ignore
+    # cancel, update, new, or ignore
     output: str = 'cancel'
     game_lib: "GameLibrary"
     pointer_info: dict[str, QLineEdit]
@@ -322,18 +325,18 @@ class EditUI(Ui_EditDialog):
         self.lineEdit_image.setText(img)
         self.dlg.exec()
 
-    def fullInfo(self, gpath: Path, ginfo: GAMEDATA_TYPE):
-        self.game_path = gpath
+    def fullInfo(self, ginfo: "GameClass"):
+        self.game_path = ginfo.Dir
         self.orig_path = self.game_path
         self.label_gamepath.setText(
             str(self.game_path.relative_to(FPATH_GAMES)))
         # info
-        for k, v in ginfo['Info'].items():
+        for k, v in ginfo.Info.__dict__.items():
             if self.pointer_info.get(k):
                 self.pointer_info[k].setText(str(v))
-        self.textEdit_description.setPlainText(ginfo['Info']['Description'])
+        self.textEdit_description.setPlainText(ginfo.Info.Description)
         # program paths
-        ppths = ginfo['Info']['Program Path']
+        ppths = ginfo.Info.Program_Path
         if isinstance(ppths, Path):
             self.pointer_program_paths[0].lineEdit_exe.setText(
                 str(ppths.relative_to(self.game_path)))
@@ -345,17 +348,17 @@ class EditUI(Ui_EditDialog):
             QTimer.singleShot(10, self.pointer_program_paths[0].remRow)
         # categories
         for k, field in self.pointer_categories_cmbBox.items():
-            val = ginfo['Categories'][k]
+            val = ginfo.Categories.__dict__.get(k)
             field.setCurrentText(val)
         for k, field in self.pointer_categories_chkBox.items():
-            val = ginfo['Categories'][k]
+            val = ginfo.Categories.__dict__.get(k)
             field.setChecked(val)
         # tags
         for k, field in self.pointer_tags_cmbBox.items():
-            val = ginfo['Tags'][k]
+            val = ginfo.Tags.__dict__.get(k)
             field.setCurrentText(val)
         for k, field in self.pointer_tags_chkBox.items():
-            val = ginfo['Tags'][k]
+            val = ginfo.Tags.__dict__.get(k)
             field.setChecked(val)
         self.dlg.exec()
 
@@ -371,77 +374,52 @@ class EditUI(Ui_EditDialog):
         tags = self.getInputsTags()
         if None in (info_input, info_game_path, info_paths, categories, tags):
             return
-        # check if data is new
         new_data = {
+            'Dir': info_game_path,
             'Info': (info_input | info_paths),
             'Categories': categories,
             'Tags': tags
         }
-        old_data = self.game_lib.master_list.get(self.game_path)
-        if not old_data:
+        new_game = GameClass._fromJson(**new_data)
+        # check if data is new
+        old_game = self.game_lib.getGameFromPath(self.orig_path)
+        if not old_game:
             # game is new
             self.output = 'new'
             self.game_lib.recent_list['added'].insert(
                 0, new_data['Info']['Title'])
             self.game_lib.saveRecent()
-            self.checkUpdatedData(info_game_path, old_data, new_data)
-        elif new_data != old_data:
-            if new_data['Info']['Version'] != old_data['Info']['Version']:
+            self.checkUpdatedData(info_game_path, old_game, new_data)
+        elif new_data != old_game._toDict():
+            if new_data['Info']['Version'] != old_game.Info.Version:
                 # game is updated
                 self.output = 'update'
             else:
                 # game is changed
                 self.output = 'change'
-            self.checkUpdatedData(info_game_path, old_data, new_data)
+            self.checkUpdatedData(info_game_path, old_game, new_data)
         else:
             self.output = 'cancel'
 
-    def checkUpdatedData(self, gpath: Path, old_data: O[GAMEDATA_TYPE], new_data: GAMEDATA_TYPE):
+    def checkUpdatedData(self, gpath: Path, old_game: O[GameClass], new_data: GAMEDATA_TYPE):
         path_is_new = (not self.game_path.samefile(gpath)
                        if self.game_path.exists() else True)
-        old_ver = old_data['Info']['Version'] if old_data else ''
-        new_ver = new_data['Info']['Version']
-        if path_is_new or not old_data or old_ver != new_ver:
-            old_title = old_data['Info']['Title'] if old_data else ''
-            new_title = new_data['Info']['Title']
-            # update recent lists
-            old_list = 'updated' if old_data else 'added'
-            cur_list = self.game_lib.recent_list[old_list].copy()
-            if old_title in cur_list:
-                cur_list.remove(old_title)
-            if new_title in cur_list:
-                cur_list.remove(new_title)
-            cur_list.insert(0, new_title)
-            while len(cur_list) > MAX_RECENT_GAMES:
-                cur_list.pop()
-            if cur_list != self.game_lib.recent_list[old_list]:
-                self.game_lib.recent_list[old_list] = cur_list
-                self.game_lib.saveRecent()
-            # check if path has changed
-            if path_is_new:
-                self.game_lib.master_list.pop(self.game_path, None)
-                self.game_path = gpath
-        # update master list
-        self.game_lib.master_list[self.game_path] = new_data
-        self.game_lib.save()
-
-    @staticmethod
-    def moveResizeImage(img: str) -> str:
-        if not img:
-            return ''
-        img_path = Path(img)
-        if not img_path.exists():
-            img_path = FPATH_IMGS.joinpath(img_path)
-        if not img_path.exists():
-            return img
-        # process
-        new_path = FPATH_IMGS.joinpath(f'{img_path.stem}.jpg')
-        run(f'magick convert "{img_path}[0]" -resize 1280x720> "{new_path}"')
-        if str(img_path) != str(new_path):
-            img_path.unlink()
-        return str(new_path.relative_to(FPATH_IMGS))
 
     def getInputsInfo(self) -> dict[str, str]:
+        def moveResizeImage(img: str) -> str:
+            if not img:
+                return ''
+            img_path = Path(img)
+            if not img_path.exists():
+                img_path = FPATH_IMGS.joinpath(img_path)
+            if not img_path.exists():
+                return img
+            # process
+            new_path = FPATH_IMGS.joinpath(f'{img_path.stem}.jpg')
+            run(f'magick convert "{img_path}[0]" -resize 1280x720> "{new_path}"')
+            if str(img_path) != str(new_path):
+                img_path.unlink()
+            return str(new_path.relative_to(FPATH_IMGS))
         data = {k: v.text().strip()
                 for k, v in self.pointer_info.items()}
         if 'f95zone' in data['URL']:
@@ -449,7 +427,7 @@ class EditUI(Ui_EditDialog):
                         repl='',
                         string=data['URL'])
             data['URL'] = url
-        data['Image'] = self.moveResizeImage(data['Image'])
+        data['Image'] = moveResizeImage(data['Image'])
         data['Description'] = self.textEdit_description.toPlainText()
         missing_pts = [k for k, v in data.items() if k != 'Image' and not v]
         if missing_pts:
@@ -469,7 +447,7 @@ class EditUI(Ui_EditDialog):
                 stop = self.askMissingInfo(['Program Path(s)'])
                 if stop:
                     return None, None
-        return top_path, {'Program Path': data}
+        return top_path, {'Program_Path': data}
 
     def getInputs(self, chkBox_pointer: dict[str, QCheckBox], cmbBox_pointer: dict[str, QComboBox]) -> dict[str, U[str, int]]:
         chkBox = {k: int(v.isChecked())

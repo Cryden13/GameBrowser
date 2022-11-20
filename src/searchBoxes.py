@@ -17,6 +17,7 @@ class SearchBoxes:
     column: int
     parent: QGroupBox
     parent_layout: QGridLayout
+    wrap_at: int
 
     def __init__(self, parent: QGroupBox, parent_layout: QGridLayout, total_count: int):
         self.parent = parent

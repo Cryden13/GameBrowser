@@ -1,21 +1,18 @@
-# -*- coding: utf-8 -*-
-
 from PyQt5.QtGui import QFont
 
 from PyQt5.QtWidgets import (
-    QDialog,
-    QVBoxLayout,
-    QLabel,
-    QScrollArea,
-    QWidget,
     QDialogButtonBox,
-    QApplication
+    QVBoxLayout,
+    QScrollArea,
+    QDialog,
+    QWidget,
+    QLabel
 )
 from PyQt5.QtCore import (
-    Qt,
+    QMetaObject,
     QSize,
     QRect,
-    QMetaObject
+    Qt
 )
 
 from ..constants import *
@@ -69,13 +66,3 @@ class Ui_GamePickerDialog(object):
         self.buttonBox.rejected.connect(
             GamePickerDialog.reject)  # type: ignore
         QMetaObject.connectSlotsByName(GamePickerDialog)
-
-
-if __name__ == "__main__":
-    from sys import argv, exit
-    app = QApplication(argv)
-    GamePickerDialog = QDialog()
-    ui = Ui_GamePickerDialog()
-    ui.setupUi(GamePickerDialog)
-    GamePickerDialog.show()
-    exit(app.exec_())
